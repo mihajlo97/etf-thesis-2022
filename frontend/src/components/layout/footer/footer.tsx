@@ -18,7 +18,7 @@ export const Footer = () => {
               {"University of Belgrade"}
             </p>
             <p>
-              {"Webite:"}
+              {"Website:"}
               <br />
               <a href="https://www.etf.bg.ac.rs/">{"etf.bg.ac.rs"}</a>
             </p>

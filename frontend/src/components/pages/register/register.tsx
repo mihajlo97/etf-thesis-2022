@@ -112,7 +112,7 @@ export const Register = () => {
   const onSubmit = () => {
     const valid = assertValidForm();
 
-    console.log("FormSubmit", {
+    console.log("RegisterSubmit", {
       name,
       email,
       password,
