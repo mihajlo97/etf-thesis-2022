@@ -1,0 +1,21 @@
+// Variables
+$bgColorPrimary: #A7FFEB;
+$bgColorSecondary: #FAFAFA;
+$btnHoverPrimary: #1DE9B6;
+
+// Theme
+.bg-color-primary {
+    background-color: $bgColorPrimary;
+}
+
+.bg-color-secondary {
+    background-color: $bgColorSecondary;
+}
+
+.button-primary {
+    background-color: $bgColorPrimary;
+
+    &:hover {
+        background-color: $btnHoverPrimary;
+    }
+}
