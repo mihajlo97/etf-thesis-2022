@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "../../../consts/routes.consts";
 import { registerUser } from "../../../service/API/user.service";
+import { Footer } from "../../layout/footer/footer";
 import { Spinner } from "../../UI/spinner/spinner";
 
 export const Register = () => {
@@ -245,6 +246,8 @@ export const Register = () => {
           </form>
         </div>
       </div>
+
+      <Footer />
     </React.Fragment>
   );
 };

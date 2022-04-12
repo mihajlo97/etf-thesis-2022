@@ -2,6 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "../../../consts/routes.consts";
+import { Footer } from "../../layout/footer/footer";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -45,6 +46,8 @@ export const Login = () => {
           </form>
         </div>
       </div>
+
+      <Footer />
     </React.Fragment>
   );
 };
