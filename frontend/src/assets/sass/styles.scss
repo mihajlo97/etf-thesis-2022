@@ -1,7 +1,6 @@
 // Variables
-$bgColorPrimary: #A7FFEB;
+$bgColorPrimary: #1e87f0;
 $bgColorSecondary: #FAFAFA;
-$btnHoverPrimary: #1DE9B6;
 
 // Theme
 .bg-color-primary {
@@ -12,10 +11,6 @@ $btnHoverPrimary: #1DE9B6;
     background-color: $bgColorSecondary;
 }
 
-.button-primary {
-    background-color: $bgColorPrimary;
-
-    &:hover {
-        background-color: $btnHoverPrimary;
-    }
+.spinner {
+    padding: 5px;
 }
