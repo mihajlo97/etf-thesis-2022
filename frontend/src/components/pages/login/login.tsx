@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes";
+import { AppRoutes } from "../../../consts/routes.consts";
 
 export const Login = () => {
   const navigate = useNavigate();

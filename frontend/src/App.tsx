@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Navigate, Routes } from "react-router-dom";
 import { Login } from "./components/pages/login/login";
 import { PageNotFound } from "./components/pages/page-not-found/page-not-found";
 import { Register } from "./components/pages/register/register";
-import { AppRoutes } from "./consts/routes";
+import { AppRoutes } from "./consts/routes.consts";
 
 const App = () => {
   return (

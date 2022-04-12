@@ -1,7 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes";
+import { AppRoutes } from "../../../consts/routes.consts";
+import { registerUser } from "../../../service/API/user.service";
 import { Spinner } from "../../UI/spinner/spinner";
 
 export const Register = () => {
@@ -119,6 +120,9 @@ export const Register = () => {
     });
 
     setSubmitted(true);
+    setSubmitting(true);
+
+    registerUser({ name, email, password }).then(() => setSubmitting(false));
   };
 
   const navigate = useNavigate();
