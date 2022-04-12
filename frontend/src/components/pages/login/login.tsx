@@ -17,17 +17,17 @@ export const Login = () => {
           <h3 className="uk-card-title">{"Welcome to $PROJ_NAME!"}</h3>
           <form>
             <fieldset className="uk-fieldset">
-              <label htmlFor="emailField">{"Email:"}</label>
+              <label htmlFor="login_Email-Field">{"Email:"}</label>
               <input
                 className="uk-input uk-margin-bottom"
-                id="emailField"
+                id="login_Email-Field"
                 type="text"
               ></input>
 
-              <label htmlFor="passwordField">{"Password:"}</label>
+              <label htmlFor="login_Password-Field">{"Password:"}</label>
               <input
                 className="uk-input"
-                id="passwordField"
+                id="login_Password-Field"
                 type="password"
               ></input>
 
