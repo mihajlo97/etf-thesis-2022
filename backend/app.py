@@ -1,11 +1,13 @@
 import os
-from flask import Flask, jsonify, make_response, request
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
+import re
 import uuid
 import jwt
 import datetime
+from flask import Flask, jsonify, request
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_sqlalchemy import SQLAlchemy
+
 
 # Server and database setup:
 
@@ -63,6 +65,53 @@ def AuthGuard(func):
 @app.route("/")
 def index():
     return "Server up and running on port 5000."
+
+
+@app.route("/user/register", methods=["POST"])
+def register_user():
+    # Register user in database.
+    # Request: { firstName, lastName, email, password }
+    # Response: [
+    #   200 { msg },
+    #   400 { msg }
+    # ]
+
+    data = request.get_json()
+
+    firstName = request.json.get('firstName', '')
+    lastName = request.json.get('lastName', '')
+    email = request.json.get('email', '')
+    password = request.json.get('password', '')
+
+    if ('firstName' not in data) or (len(firstName) == 0):
+        return jsonify({'msg': 'User must have a valid first name.'}), 400
+    if ('lastName' not in data) or (len(lastName) == 0):
+        return jsonify({'msg': 'User must have a valid last name.'}), 400
+    if ('email' not in data) or (len(email) == 0):
+        return jsonify({'msg': 'User must have a valid email.'}), 400
+    if ('password' not in data) or (len(password) == 0):
+        return jsonify({'msg': 'User must have a valid password.'}), 400
+
+    emailPattern = r'^.+@.+\..{2,}$'
+    if not re.search(emailPattern, email):
+        return jsonify({'msg': 'Invalid email format.'}), 400
+
+    passwordPattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$'
+    if not re.search(passwordPattern, password):
+        return jsonify({'msg': 'Invalid password format.'}), 400
+
+    isNotUniqueEmail = Users.query.filter(Users.email == email).first()
+    if isNotUniqueEmail:
+        return jsonify({'msg': 'User already exists.'}), 400
+
+    hashed_password = generate_password_hash(data['password'], method='sha256')
+
+    user = Users(public_id=str(uuid.uuid4(
+    )), first_name=firstName, last_name=lastName, email=email, password=hashed_password)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({'msg': 'User registered successfully.'}), 200
 
 
 # Startup:
