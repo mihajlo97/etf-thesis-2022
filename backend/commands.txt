@@ -1,0 +1,6 @@
+# Run venv:
+Set-ExecutionPolicy Unrestricted -Scope Process
+& .\.venv\Scripts\activate
+
+# Run db from \backend\:
+.\db\sqlite3.exe .\db\database.db
