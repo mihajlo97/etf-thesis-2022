@@ -1,6 +1,9 @@
-# Run venv:
+# Run venv from \backend\:
 Set-ExecutionPolicy Unrestricted -Scope Process
 & .\.venv\Scripts\activate
 
 # Run db from \backend\:
 .\db\sqlite3.exe .\db\database.db
+
+# Run flask server from \backend\:
+python -m flask run

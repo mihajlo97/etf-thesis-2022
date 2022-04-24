@@ -1,17 +1,18 @@
 import os
 import re
 import uuid
-import jwt
 import datetime
 from flask import Flask, jsonify, request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
 
 
-# Server and database setup:
+# Server and database config:
 
 app = Flask(__name__)
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_uri = f'{basedir}\db\database.db'
 
@@ -19,7 +20,11 @@ app.config['SECRET_KEY'] = 'ETF_THESIS_2022_SECRET'
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_uri}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['JWT_SECRET_KEY'] = 'ETF_THESIS_JWT_2022_SECRET'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=2)
+
 db = SQLAlchemy(app)
+jwt = JWTManager(app)
 
 
 # Database schema setup:
@@ -36,34 +41,18 @@ class Users(db.Model):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
 
 
-# Wrappers:
+# Helper functions
 
-def AuthGuard(func):
-    @wraps(func)
-    def decorator(*args, **kwargs):
-        token = None
-
-        if 'x-access-tokens' in request.headers:
-            token = request.headers['x-access-tokens']
-
-        if not token:
-            return jsonify({'msg': 'Missing auth token from request.'})
-
-        try:
-            data = jwt.decode(
-                token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            user = Users.query.filter_by(user_id=data['user_id']).first()
-        except:
-            return jsonify({'msg': 'Invalid auth token submitted with request.'})
-
-        return func(user, *args, **kwargs)
-    return decorator
+def assertFieldNotEmpty(field, data):
+    if (field not in data) or (len(data[field]) == 0):
+        return jsonify({'msg': f'Field {field} is empty.'}), 400
 
 
 # API:
 
 @app.route("/")
 def index():
+    # Basic server healthcheck.
     return "Server up and running on port 5000."
 
 
@@ -83,14 +72,10 @@ def register_user():
     email = request.json.get('email', '')
     password = request.json.get('password', '')
 
-    if ('firstName' not in data) or (len(firstName) == 0):
-        return jsonify({'msg': 'User must have a valid first name.'}), 400
-    if ('lastName' not in data) or (len(lastName) == 0):
-        return jsonify({'msg': 'User must have a valid last name.'}), 400
-    if ('email' not in data) or (len(email) == 0):
-        return jsonify({'msg': 'User must have a valid email.'}), 400
-    if ('password' not in data) or (len(password) == 0):
-        return jsonify({'msg': 'User must have a valid password.'}), 400
+    assertFieldNotEmpty('firstName', data)
+    assertFieldNotEmpty('lastName', data)
+    assertFieldNotEmpty('email', data)
+    assertFieldNotEmpty('password', data)
 
     emailPattern = r'^.+@.+\..{2,}$'
     if not re.search(emailPattern, email):
@@ -104,17 +89,44 @@ def register_user():
     if isNotUniqueEmail:
         return jsonify({'msg': 'User already exists.'}), 400
 
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashedPassword = generate_password_hash(data['password'], method='sha256')
 
     user = Users(public_id=str(uuid.uuid4(
-    )), first_name=firstName, last_name=lastName, email=email, password=hashed_password)
+    )), first_name=firstName, last_name=lastName, email=email, password=hashedPassword)
     db.session.add(user)
     db.session.commit()
 
     return jsonify({'msg': 'User registered successfully.'}), 200
 
 
-# Startup:
+@app.route('/user/login', methods=['POST'])
+def login():
+    # Login user and return JWT.
+    # Request: { email, password }
+    # Response: [
+    #   200 { accessToken },
+    #   401 { msg },
+    #   404 { msg }
+    # ]
+    data = request.get_json()
+    email = request.json.get('email', '')
+    password = request.json.get('password', '')
 
+    assertFieldNotEmpty('email', data)
+    assertFieldNotEmpty('password', data)
+
+    user = Users.query.filter(Users.email == email).first()
+
+    if not user:
+        return jsonify({'msg': 'User not found.'}), 404
+
+    if not check_password_hash(user.password, password):
+        return jsonify({'msg': 'Invalid password.'}), 401
+
+    accessToken = create_access_token(identity=user.public_id)
+
+    return jsonify({'accessToken': accessToken}), 200
+
+    # Startup:
 if __name__ == '__main__':
     app.run(debug=True)
