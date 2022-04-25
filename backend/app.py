@@ -8,6 +8,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
+from flask_cors import CORS
 
 
 # Server and database config:
@@ -26,6 +27,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=2)
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
+CORS(app)
 
 
 # Database schema setup:
@@ -88,7 +90,7 @@ def register_user():
 
     isNotUniqueEmail = Users.query.filter(Users.email == email).first()
     if isNotUniqueEmail:
-        return jsonify({'msg': 'User already exists.'}), 400
+        return jsonify({'msg': f'User with email {email} is already registered.'}), 500
 
     hashedPassword = generate_password_hash(data['password'], method='sha256')
 
