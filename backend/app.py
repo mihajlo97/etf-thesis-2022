@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import datetime
+import logging
 from flask import Flask, jsonify, request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -43,10 +44,6 @@ class Users(db.Model):
 
 # Helper functions
 
-def assertFieldNotEmpty(field, data):
-    if (field not in data) or (len(data[field]) == 0):
-        return jsonify({'msg': f'Field {field} is empty.'}), 400
-
 
 # API:
 
@@ -72,10 +69,14 @@ def register_user():
     email = request.json.get('email', '')
     password = request.json.get('password', '')
 
-    assertFieldNotEmpty('firstName', data)
-    assertFieldNotEmpty('lastName', data)
-    assertFieldNotEmpty('email', data)
-    assertFieldNotEmpty('password', data)
+    if ('firstName' not in data) or (len(firstName) == 0):
+        return jsonify({'msg': 'Missing field firstName.'}), 400
+    if ('lastName' not in data) or (len(lastName) == 0):
+        return jsonify({'msg': 'Missing field lastName.'}), 400
+    if ('email' not in data) or (len(email) == 0):
+        return jsonify({'msg': 'Missing field email.'}), 400
+    if ('password' not in data) or (len(password) == 0):
+        return jsonify({'msg': 'Missing field password.'}), 400
 
     emailPattern = r'^.+@.+\..{2,}$'
     if not re.search(emailPattern, email):
@@ -108,12 +109,15 @@ def login():
     #   401 { msg },
     #   404 { msg }
     # ]
+
     data = request.get_json()
     email = request.json.get('email', '')
     password = request.json.get('password', '')
 
-    assertFieldNotEmpty('email', data)
-    assertFieldNotEmpty('password', data)
+    if ('email' not in data) or (len(email) == 0):
+        return jsonify({'msg': 'Missing field email.'}), 400
+    if ('password' not in data) or (len(password) == 0):
+        return jsonify({'msg': 'Missing field password.'}), 400
 
     user = Users.query.filter(Users.email == email).first()
 
