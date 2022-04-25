@@ -3,7 +3,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "../../../consts/routes.consts";
-import { registerUser } from "../../../service/API/user.service";
+import { registerUser } from "../../../service/api.service";
 import { Footer } from "../../layout/footer/footer";
 import { Spinner } from "../../UI/spinner/spinner";
 

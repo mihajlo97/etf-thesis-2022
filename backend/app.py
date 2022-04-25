@@ -23,7 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_uri}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['JWT_SECRET_KEY'] = 'ETF_THESIS_JWT_2022_SECRET'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=2)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(hours=48)
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -107,7 +108,8 @@ def login():
     # Login user and return JWT.
     # Request: { email, password }
     # Response: [
-    #   200 { accessToken },
+    #   200 { accessToken, refreshToken },
+    #   400 { msg },
     #   401 { msg },
     #   404 { msg }
     # ]
@@ -130,8 +132,9 @@ def login():
         return jsonify({'msg': 'Invalid password.'}), 401
 
     accessToken = create_access_token(identity=user.public_id)
+    refreshToken = create_refresh_token(identity=user.public_id)
 
-    return jsonify({'accessToken': accessToken}), 200
+    return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
 
     # Startup:
 if __name__ == '__main__':

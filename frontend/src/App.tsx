@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Navigate, Routes } from "react-router-dom";
+import { Main } from "./components/layout/main/main";
 import { Login } from "./components/pages/login/login";
 import { PageNotFound } from "./components/pages/page-not-found/page-not-found";
 import { Register } from "./components/pages/register/register";
@@ -14,6 +15,7 @@ const App = () => {
         />
         <Route path={AppRoutes.login} element={<Login />} />
         <Route path={AppRoutes.register} element={<Register />} />
+        <Route path={AppRoutes.dashboard} element={<Main />} />
         <Route path={AppRoutes.pageNotFound} element={<PageNotFound />} />
         <Route path="*" element={<Navigate to={AppRoutes.pageNotFound} />} />
       </Routes>
