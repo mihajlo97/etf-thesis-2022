@@ -1,9 +1,17 @@
 import React from "react";
+import { Footer } from "../footer/footer";
+import { Header } from "../header/header";
 
-export const Main = () => {
+export interface MainProps {
+  component: JSX.Element;
+}
+
+export const Main = ({ component }: MainProps) => {
   return (
     <React.Fragment>
-      <p>Main page layout.</p>
+      <Header />
+      {component}
+      <Footer />
     </React.Fragment>
   );
 };

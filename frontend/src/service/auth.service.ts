@@ -23,3 +23,9 @@ export const loginUserWithCredentials = async (req: LoginUserRequest): Promise<n
         return new Promise((resolve, reject) => reject(status));
     }
 }
+
+export const assertUserLoggedIn = () => {
+    const token = sessionStorage.getItem(KEY_ACCESS_TOKEN);
+
+    return token !== null;
+}

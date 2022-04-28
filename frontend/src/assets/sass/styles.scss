@@ -1,6 +1,9 @@
 // Variables
 $bgColorPrimary: #1e87f0;
 $bgColorSecondary: #FAFAFA;
+$headerLinkColor: white;
+$headerActiveLinkColor: #58bfff;
+$headerHoverLinkColor: #98d6fd;
 
 // Theme
 .bg-color-primary {
@@ -13,6 +16,22 @@ $bgColorSecondary: #FAFAFA;
 
 .spinner {
     padding: 5px;
+}
+
+.header {
+    background-color: $bgColorPrimary !important;
+}
+
+.header-nav-link {
+    color: $headerLinkColor !important;
+}
+
+.header-nav-link:hover {
+    color: $headerHoverLinkColor !important;
+}
+
+.header-nav-link-active {
+    color: $headerActiveLinkColor !important;
 }
 
 .footer {

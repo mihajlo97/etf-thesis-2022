@@ -3,5 +3,7 @@ export const AppRoutes = {
     login: '/login',
     register: '/register',
     dashboard: '/dashboard',
+    reports: '/reports',
+    logout: '/logout',
     pageNotFound: '/page-not-found'
 }
