@@ -3,6 +3,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "../../../consts/routes.consts";
+import { logoutUser } from "../../../service/auth.service";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -11,6 +12,12 @@ export const Header = () => {
     if (window.location.pathname !== route) {
       navigate(route);
     }
+  };
+
+  const performLogout = () => {
+    logoutUser();
+
+    navigate(AppRoutes.logout);
   };
 
   const applyActiveClass = (route: string) =>
@@ -52,7 +59,7 @@ export const Header = () => {
               <ul className="uk-navbar-nav">
                 <li className={`${applyActiveClass(AppRoutes.logout)}`}>
                   <a
-                    onClick={() => navigateTo(AppRoutes.logout)}
+                    onClick={() => performLogout()}
                     className={`header-nav-link ${applyActiveClass(
                       AppRoutes.logout
                     )}`}

@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity
 from flask_cors import CORS
 
 
@@ -136,6 +136,33 @@ def login():
 
     return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
 
-    # Startup:
+
+@app.route('/user/refresh', methods=['GET'])
+@jwt_required(refresh=True, optional=True)
+def refresh():
+    # Refresh user session with a fresh pair of tokens.
+    # Headers: { Authorization: Bearer <refresh_token> }
+    # Response: [
+    #   200 { accessToken, refreshToken },
+    #   401 { msg }
+    # ]
+
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    user = Users.query.filter(Users.public_id == identity).first()
+
+    if not user:
+        return jsonify({'msg': 'Unauthorized user refresh request.'}), 401
+
+    accessToken = create_access_token(identity=user.public_id)
+    refreshToken = create_refresh_token(identity=user.public_id)
+
+    return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
+
+
+# Startup:
 if __name__ == '__main__':
     app.run(debug=True)
