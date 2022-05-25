@@ -36,10 +36,6 @@ export const loginUser = (req: LoginUserRequest): Promise<AxiosResponse<LoginUse
 }
 
 export const refreshUser = (jwtRefresh: string | null): Promise<AxiosResponse<LoginUserResponse>> => {
-    if (!assertTokenStillValid(jwtRefresh)) {
-        logoutUser(true);
-    }
-
     return axios.get(`${API_ROOT}${API_USER_REFRESH}`, {
         headers: {
             Authorization: `Bearer ${jwtRefresh}`

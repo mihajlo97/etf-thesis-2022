@@ -1,13 +1,13 @@
 import os
 import re
 import uuid
-import datetime
 import logging
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity, get_jwt
 from flask_cors import CORS
 
 
@@ -23,8 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_uri}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['JWT_SECRET_KEY'] = 'ETF_THESIS_JWT_2022_SECRET'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=2)
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(minutes=10)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(minutes=5)
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -151,6 +151,12 @@ def refresh():
 
     if not identity:
         return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    exp = get_jwt()['exp']
+    now = int(datetime.timestamp(datetime.now()))
+
+    if now >= exp:
+        return jsonify({'msg': 'Session expired.'}), 401
 
     user = Users.query.filter(Users.public_id == identity).first()
 

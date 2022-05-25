@@ -1,4 +1,5 @@
 import React from "react";
+import { clearSessionExpiredLogout } from "../../../service/auth.service";
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
 
@@ -7,6 +8,8 @@ export interface MainProps {
 }
 
 export const Main = ({ component }: MainProps) => {
+  clearSessionExpiredLogout();
+
   return (
     <React.Fragment>
       <Header />

@@ -33,6 +33,8 @@ export const assertTokenStillValid = (jwt: string | null) => {
     return expiresInSeconds >= now;
 }
 
+export const assertSessionStillValid = () => assertTokenStillValid(getAccessToken());
+
 export const doSilentRefresh = async (): Promise<void> => {
     try {
         const jwtRefresh = getRefreshToken();
@@ -79,13 +81,7 @@ export const loginUserWithCredentials = async (req: LoginUserRequest): Promise<n
     }
 }
 
-export const logoutUser = (forceNavigation?: boolean) => {
-    deleteCredentials();
-
-    if (forceNavigation) {
-        window.location.pathname = AppRoutes.logout;
-    }
-}
+export const logoutUser = () => deleteCredentials();
 
 export const setSessionExpired = () => sessionStorage.setItem(KEY_SESSION_EXPIRED, 'true');
 
