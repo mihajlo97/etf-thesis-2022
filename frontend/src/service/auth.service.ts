@@ -1,4 +1,4 @@
-import { KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN } from "../consts/keys.consts";
+import { KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN, KEY_SESSION_EXPIRED } from "../consts/keys.consts";
 import { LoginUserRequest } from "../model/api-request.model";
 import { loginUser, refreshUser } from "./api.service";
 import { JwtPayload } from "jwt-decode"
@@ -86,3 +86,9 @@ export const logoutUser = (forceNavigation?: boolean) => {
         window.location.pathname = AppRoutes.logout;
     }
 }
+
+export const setSessionExpired = () => sessionStorage.setItem(KEY_SESSION_EXPIRED, 'true');
+
+export const assertSessionExpiredLogout = () => sessionStorage.getItem(KEY_SESSION_EXPIRED) !== null;
+
+export const clearSessionExpiredLogout = () => sessionStorage.removeItem(KEY_SESSION_EXPIRED);

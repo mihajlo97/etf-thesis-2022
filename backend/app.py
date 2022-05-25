@@ -23,8 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_uri}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['JWT_SECRET_KEY'] = 'ETF_THESIS_JWT_2022_SECRET'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(hours=48)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=2)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(minutes=10)
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
