@@ -5,6 +5,7 @@ import {
   assertSessionStillValid,
   assertUserLoggedIn,
   doSilentRefresh,
+  getCheckSessionValidityInterval,
   logoutUser,
   setSessionExpired,
 } from "../../../service/auth.service";
@@ -15,7 +16,7 @@ type TargetComponent = "login" | "logout" | "loading" | "component";
 export const AuthGuard = (props: any): JSX.Element => {
   const [target, setTarget] = React.useState("loading" as TargetComponent);
 
-  React.useEffect(() => {
+  const checkSessionValidity = () => {
     if (!assertUserLoggedIn()) {
       setTarget("login");
       return;
@@ -36,6 +37,20 @@ export const AuthGuard = (props: any): JSX.Element => {
     }
 
     setTarget("component");
+  };
+
+  React.useEffect(() => {
+    /** Check session status on initial page load. */
+    checkSessionValidity();
+  }, []);
+
+  React.useEffect(() => {
+    /** Check session status periodically when the user is logged into the app. */
+    if (assertUserLoggedIn()) {
+      setInterval(() => {
+        checkSessionValidity();
+      }, getCheckSessionValidityInterval());
+    }
   }, []);
 
   switch (target) {

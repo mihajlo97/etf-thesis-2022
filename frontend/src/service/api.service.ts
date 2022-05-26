@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { API_USER_LOGIN, API_USER_REGISTER, API_ROOT, API_USER_REFRESH } from "../consts/api.consts";
 import { LoginUserRequest, RegisterUserRequest } from "../model/api-request.model";
 import { LoginUserResponse, RegisterUserResponse } from "../model/api-response.model";
-import { assertTokenStillValid, doSilentRefresh, getAccessToken, logoutUser } from "./auth.service";
+import { assertTokenStillValid, doSilentRefresh, getAccessToken } from "./auth.service";
 
 const getAuthenticatedConfig = async (jwt: string): Promise<AxiosRequestConfig | string> => {
     const valid = assertTokenStillValid(jwt);

@@ -3,7 +3,6 @@ import { LoginUserRequest } from "../model/api-request.model";
 import { loginUser, refreshUser } from "./api.service";
 import { JwtPayload } from "jwt-decode"
 import decodeJWT from "jwt-decode";
-import { AppRoutes } from "../consts/routes.consts";
 
 const saveCredentials = (jwtAccess: string | undefined, jwtRefresh: string | undefined) => {
     sessionStorage.setItem(KEY_ACCESS_TOKEN, `${jwtAccess}`);
@@ -88,3 +87,5 @@ export const setSessionExpired = () => sessionStorage.setItem(KEY_SESSION_EXPIRE
 export const assertSessionExpiredLogout = () => sessionStorage.getItem(KEY_SESSION_EXPIRED) !== null;
 
 export const clearSessionExpiredLogout = () => sessionStorage.removeItem(KEY_SESSION_EXPIRED);
+
+export const getCheckSessionValidityInterval = () => 1000 * 60 * 10;
