@@ -24,9 +24,6 @@ export const Dashboard = () => {
       case DashboardView.SELECT_UPLOAD_TYPE:
         return <SelectUploadType transition={switchToView} />;
 
-      case DashboardView.UPLOADING:
-        return <Waiting transition={switchToView} text="Uploading..." />;
-
       case DashboardView.WEBCAM:
         return <Webcam transition={switchToView} />;
 
