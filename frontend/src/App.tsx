@@ -5,8 +5,8 @@ import { Login } from "./components/pages/login/login";
 import { Logout } from "./components/pages/logout/logout";
 import { PageNotFound } from "./components/pages/page-not-found/page-not-found";
 import { Register } from "./components/pages/register/register";
-import { Dashboard } from "./components/UI/dashboard/dashboard";
-import { Reports } from "./components/UI/reports/reports";
+import { Dashboard } from "./components/pages/dashboard/dashboard";
+import { Reports } from "./components/pages/reports/reports";
 import { AppRoutes } from "./consts/routes.consts";
 
 const App = () => {
