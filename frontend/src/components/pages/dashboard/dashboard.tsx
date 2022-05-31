@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import { DashboardView } from "../../../consts/dashboard.consts";
 import { Waiting } from "../../views/dashboard/waiting/waiting";
@@ -5,15 +6,14 @@ import { DefaultDashboard } from "../../views/dashboard/default_dashboard/defaul
 import { Results } from "../../views/dashboard/results/results";
 import { SelectUploadType } from "../../views/dashboard/select_upload_type/select-upload-type";
 import { Settings } from "../../views/dashboard/settings/settings";
-import { Webcam } from "../../views/dashboard/webcam/webcam";
+import { WebcamWindow } from "../../views/dashboard/webcam-window/webcam-window";
+import { removeUploadedImage } from "../../../service/dashboard.service";
 
 export const Dashboard = () => {
-  const [dashboardView, setDashboardView] = React.useState(
-    DashboardView.INITIAL
-  );
+  const [view, setView] = React.useState(DashboardView.INITIAL);
 
   const switchToView = (view: DashboardView) => {
-    setDashboardView(view);
+    setView(view);
   };
 
   const renderView = (view: DashboardView): JSX.Element | null => {
@@ -25,7 +25,7 @@ export const Dashboard = () => {
         return <SelectUploadType transition={switchToView} />;
 
       case DashboardView.WEBCAM:
-        return <Webcam transition={switchToView} />;
+        return <WebcamWindow transition={switchToView} />;
 
       case DashboardView.SETTINGS:
         return <Settings transition={switchToView} />;
@@ -41,11 +41,17 @@ export const Dashboard = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (view === DashboardView.INITIAL) {
+      removeUploadedImage();
+    }
+  }, []);
+
   return (
     <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-large-top">
       <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
-        <div className="uk-flex uk-flex-center uk-padding-large">
-          {renderView(dashboardView)}
+        <div className="uk-flex uk-flex-center uk-padding">
+          {renderView(view)}
         </div>
       </div>
     </div>

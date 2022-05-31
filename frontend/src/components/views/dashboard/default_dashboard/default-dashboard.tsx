@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DashboardView,
@@ -23,6 +22,8 @@ export const DefaultDashboard = ({ transition }: DefaultDashboardProps) => {
 
   return (
     <div>
+      <h3 style={{ textAlign: "center" }}>{"Dashboard"}</h3>
+
       <div className="uk-padding-small">
         <button
           className="uk-button uk-button-primary uk-width-1-1"

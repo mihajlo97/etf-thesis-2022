@@ -11,6 +11,8 @@ export const Header = () => {
   const navigateTo = (route: string) => {
     if (window.location.pathname !== route) {
       navigate(route);
+    } else {
+      window.location.reload();
     }
   };
 
