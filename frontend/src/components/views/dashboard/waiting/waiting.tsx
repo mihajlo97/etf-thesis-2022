@@ -1,5 +1,7 @@
 import React from "react";
-import { SwitchDashboardView } from "../../../../consts/dashboard.consts";
+
+import { SwitchDashboardView } from "../../../../model/dashboard.model";
+
 import { Spinner } from "../../../UI/spinner/spinner";
 
 export interface WaitingProps {

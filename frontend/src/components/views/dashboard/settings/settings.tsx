@@ -1,7 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text */
-import React from "react";
-import { SwitchDashboardView } from "../../../../consts/dashboard.consts";
-import { getUploadedImageURL } from "../../../../service/dashboard.service";
+import { SwitchDashboardView } from "../../../../model/dashboard.model";
 
 export interface SettingsProps {
   transition: SwitchDashboardView;

@@ -1,13 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import { DashboardView } from "../../../consts/dashboard.consts";
+
+import { DashboardView } from "../../../model/dashboard.model";
+import { removeUploadedImage } from "../../../service/dashboard.service";
+
 import { Waiting } from "../../views/dashboard/waiting/waiting";
 import { DefaultDashboard } from "../../views/dashboard/default_dashboard/default-dashboard";
 import { Results } from "../../views/dashboard/results/results";
 import { SelectUploadType } from "../../views/dashboard/select_upload_type/select-upload-type";
 import { Settings } from "../../views/dashboard/settings/settings";
 import { WebcamWindow } from "../../views/dashboard/webcam-window/webcam-window";
-import { removeUploadedImage } from "../../../service/dashboard.service";
 
 export const Dashboard = () => {
   const [view, setView] = React.useState(DashboardView.INITIAL);

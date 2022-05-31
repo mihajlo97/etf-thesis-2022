@@ -2,16 +2,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import Webcam from "react-webcam";
+
+import { DEFAULT_WEBCAM_CONSTRAINTS } from "../../../../consts/dashboard.consts";
 import {
   DashboardView,
-  DEFAULT_WEBCAM_CONSTRAINTS,
   SwitchDashboardView,
-} from "../../../../consts/dashboard.consts";
-import { VideoConstraints } from "../../../../model/dashboard.model";
+  VideoConstraints,
+} from "../../../../model/dashboard.model";
 import {
   getUploadedImageURL,
   storeUploadedImage,
 } from "../../../../service/dashboard.service";
+
 import { Spinner } from "../../../UI/spinner/spinner";
 
 export interface WebcamProps {

@@ -1,4 +1,4 @@
-import { SwitchDashboardView } from "../../../../consts/dashboard.consts";
+import { SwitchDashboardView } from "../../../../model/dashboard.model";
 
 export interface ResultsProps {
   transition: SwitchDashboardView;

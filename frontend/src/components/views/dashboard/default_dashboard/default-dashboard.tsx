@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import {
   DashboardView,
   SwitchDashboardView,
-} from "../../../../consts/dashboard.consts";
+} from "../../../../model/dashboard.model";
 import { AppRoutes } from "../../../../consts/routes.consts";
 
 export interface DefaultDashboardProps {

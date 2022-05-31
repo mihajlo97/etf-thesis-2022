@@ -3,7 +3,7 @@
 import {
   DashboardView,
   SwitchDashboardView,
-} from "../../../../consts/dashboard.consts";
+} from "../../../../model/dashboard.model";
 import { storeUploadedImage } from "../../../../service/dashboard.service";
 
 export interface SelectUploadTypeProps {
