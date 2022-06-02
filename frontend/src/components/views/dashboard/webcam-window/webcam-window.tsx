@@ -81,6 +81,7 @@ export const WebcamWindow = ({ transition }: WebcamProps) => {
     <React.Fragment>
       <div>
         <h4 style={{ textAlign: "center" }}>{"Upload via camera"}</h4>
+        <hr />
 
         {!allowWebcam ? (
           <div>

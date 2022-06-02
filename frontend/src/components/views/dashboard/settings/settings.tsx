@@ -22,6 +22,7 @@ export const Settings = ({ transition }: SettingsProps) => {
     <React.Fragment>
       <div>
         <h4 style={{ textAlign: "center" }}>{"Report settings"}</h4>
+        <hr />
 
         <div>
           <label>{"Image to process:"}</label>
@@ -33,8 +34,14 @@ export const Settings = ({ transition }: SettingsProps) => {
           <select id={resolutionId} className="uk-select uk-margin-small-top">
             <option defaultChecked>{"720p (1280x720)"}</option>
             <option>{"480p (640x480)"}</option>
-            <option>{"720p (320x240)"}</option>
+            <option>{"240p (320x240)"}</option>
+            <option>{"144p (256×144)"}</option>
           </select>
+          <small>
+            {
+              "The picture will be resized to the chosen resolution for processing."
+            }
+          </small>
         </div>
 
         <div className="uk-margin-top">
@@ -44,6 +51,11 @@ export const Settings = ({ transition }: SettingsProps) => {
             <option>{"Model B"}</option>
             <option>{"Model C"}</option>
           </select>
+          <small>
+            {
+              "Choose the machine learning model to be applied during processing."
+            }
+          </small>
         </div>
 
         <button

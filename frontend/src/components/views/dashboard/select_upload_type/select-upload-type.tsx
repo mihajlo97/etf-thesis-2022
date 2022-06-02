@@ -25,8 +25,12 @@ export const SelectUploadType = ({ transition }: SelectUploadTypeProps) => {
     <React.Fragment>
       <div>
         <h4 style={{ textAlign: "center" }}>{"Choose upload type"}</h4>
+        <hr />
 
-        <div className="js-upload uk-width-1-1" data-uk-form-custom>
+        <div
+          className="js-upload uk-width-1-1 uk-margin-top"
+          data-uk-form-custom
+        >
           <button
             className="uk-button uk-button-primary uk-width-1-1"
             tabIndex={-1}
@@ -41,14 +45,12 @@ export const SelectUploadType = ({ transition }: SelectUploadTypeProps) => {
           </button>
         </div>
 
-        <div className="uk-margin-top">
-          <button
-            className="uk-button uk-button-secondary uk-width-1-1"
-            onClick={openWebcam}
-          >
-            {"Take picture"}
-          </button>
-        </div>
+        <button
+          className="uk-button uk-button-secondary uk-width-1-1 uk-margin-top"
+          onClick={openWebcam}
+        >
+          {"Take picture"}
+        </button>
       </div>
     </React.Fragment>
   );

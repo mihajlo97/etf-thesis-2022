@@ -24,25 +24,22 @@ export const DefaultDashboard = ({ transition }: DefaultDashboardProps) => {
   return (
     <React.Fragment>
       <div>
-        <h3 style={{ textAlign: "center" }}>{"Dashboard"}</h3>
+        <h4 style={{ textAlign: "center" }}>{"Dashboard"}</h4>
+        <hr />
 
-        <div>
-          <button
-            className="uk-button uk-button-primary uk-width-1-1"
-            onClick={startNewReport}
-          >
-            {"Create new report"}
-          </button>
-        </div>
+        <button
+          className="uk-button uk-button-primary uk-width-1-1 uk-margin-top"
+          onClick={startNewReport}
+        >
+          {"Create new report"}
+        </button>
 
-        <div className="uk-margin-top">
-          <button
-            className="uk-button uk-button-default uk-width-1-1"
-            onClick={navigateToReports}
-          >
-            {"View reports"}
-          </button>
-        </div>
+        <button
+          className="uk-button uk-button-default uk-width-1-1 uk-margin-top"
+          onClick={navigateToReports}
+        >
+          {"View reports"}
+        </button>
       </div>
     </React.Fragment>
   );
