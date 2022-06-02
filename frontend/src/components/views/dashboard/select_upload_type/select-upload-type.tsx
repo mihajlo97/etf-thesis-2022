@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/anchor-is-valid */
+import React from "react";
 import {
   DashboardView,
   SwitchDashboardView,
@@ -21,24 +22,34 @@ export const SelectUploadType = ({ transition }: SelectUploadTypeProps) => {
   };
 
   return (
-    <div>
-      <h4 style={{ textAlign: "center" }}>{"Choose upload type"}</h4>
+    <React.Fragment>
+      <div>
+        <h4 style={{ textAlign: "center" }}>{"Choose upload type"}</h4>
 
-      <div className="js-upload uk-padding-small" data-uk-form-custom>
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-        <button className="uk-button uk-button-primary uk-width-1-1">
-          {"Upload image"}
-        </button>
-      </div>
+        <div className="js-upload uk-width-1-1" data-uk-form-custom>
+          <button
+            className="uk-button uk-button-primary uk-width-1-1"
+            tabIndex={-1}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="uk-width-1-1"
+            />
+            {"Upload image"}
+          </button>
+        </div>
 
-      <div className="uk-padding-small">
-        <button
-          className="uk-button uk-button-secondary uk-width-1-1"
-          onClick={openWebcam}
-        >
-          {"Take picture"}
-        </button>
+        <div className="uk-margin-top">
+          <button
+            className="uk-button uk-button-secondary uk-width-1-1"
+            onClick={openWebcam}
+          >
+            {"Take picture"}
+          </button>
+        </div>
       </div>
-    </div>
+    </React.Fragment>
   );
 };

@@ -4,6 +4,7 @@ import {
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
 import { AppRoutes } from "../../../../consts/routes.consts";
+import React from "react";
 
 export interface DefaultDashboardProps {
   transition: SwitchDashboardView;
@@ -21,26 +22,28 @@ export const DefaultDashboard = ({ transition }: DefaultDashboardProps) => {
   };
 
   return (
-    <div>
-      <h3 style={{ textAlign: "center" }}>{"Dashboard"}</h3>
+    <React.Fragment>
+      <div>
+        <h3 style={{ textAlign: "center" }}>{"Dashboard"}</h3>
 
-      <div className="uk-padding-small">
-        <button
-          className="uk-button uk-button-primary uk-width-1-1"
-          onClick={startNewReport}
-        >
-          {"Create new report"}
-        </button>
-      </div>
+        <div>
+          <button
+            className="uk-button uk-button-primary uk-width-1-1"
+            onClick={startNewReport}
+          >
+            {"Create new report"}
+          </button>
+        </div>
 
-      <div className="uk-padding-small">
-        <button
-          className="uk-button uk-button-default uk-width-1-1"
-          onClick={navigateToReports}
-        >
-          {"View reports"}
-        </button>
+        <div className="uk-margin-top">
+          <button
+            className="uk-button uk-button-default uk-width-1-1"
+            onClick={navigateToReports}
+          >
+            {"View reports"}
+          </button>
+        </div>
       </div>
-    </div>
+    </React.Fragment>
   );
 };

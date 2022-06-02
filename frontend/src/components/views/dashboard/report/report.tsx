@@ -4,6 +4,6 @@ export interface ResultsProps {
   transition: SwitchDashboardView;
 }
 
-export const Results = ({ transition }: ResultsProps) => {
-  return <p>Results.</p>;
+export const Report = ({ transition }: ResultsProps) => {
+  return <p>Report.</p>;
 };

@@ -69,68 +69,84 @@ export const WebcamWindow = ({ transition }: WebcamProps) => {
     transition(DashboardView.SETTINGS);
   };
 
+  const returnToDashboard = () => {
+    transition(DashboardView.INITIAL);
+  };
+
   React.useEffect(() => {
     checkIsWebcamAllowed();
   }, []);
 
   return (
-    <div>
-      <h4 style={{ textAlign: "center" }}>{"Upload via camera"}</h4>
-
-      {!allowWebcam ? (
-        <div>
-          <p style={{ textAlign: "center" }}>
-            {`Please allow this website to access the camera in order to view the camera feed.`}
-          </p>
-          <div className="uk-flex uk-flex-center">
-            <Spinner />
-          </div>
-        </div>
-      ) : null}
-
+    <React.Fragment>
       <div>
-        {!imageTaken ? (
-          <Webcam
-            audio={false}
-            mirrored={true}
-            width={width}
-            height={height}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            videoConstraints={getVideoConstraints()}
-          />
-        ) : (
-          <img src={getUploadedImageURL()} />
-        )}
-      </div>
+        <h4 style={{ textAlign: "center" }}>{"Upload via camera"}</h4>
 
-      {allowWebcam ? (
-        <div className="uk-flex uk-flex-center">
+        {!allowWebcam ? (
+          <div>
+            <p style={{ textAlign: "center" }}>
+              {`Please allow this website to access the camera in order to view the camera feed.`}
+            </p>
+            <div className="uk-flex uk-flex-center">
+              <Spinner />
+            </div>
+          </div>
+        ) : null}
+
+        <div>
           {!imageTaken ? (
-            <button
-              className="uk-button uk-button-primary uk-width-1-1"
-              onClick={captureImage}
-            >
-              {"Capture"}
-            </button>
+            <Webcam
+              audio={false}
+              mirrored={true}
+              width={width}
+              height={height}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              videoConstraints={getVideoConstraints()}
+            />
           ) : (
-            <button
-              className="uk-button uk-button-default uk-width-1-1"
-              onClick={retakeImage}
-            >
-              {"Retake"}
-            </button>
+            <img src={getUploadedImageURL()} />
           )}
         </div>
-      ) : null}
 
-      {imageTaken ? (
-        <div className="uk-flex uk-flex-center uk-margin-top">
-          <button className="uk-button uk-button-primary" onClick={submitImage}>
-            {"Submit"}
-          </button>
-        </div>
-      ) : null}
-    </div>
+        {allowWebcam ? (
+          <div>
+            {!imageTaken ? (
+              <button
+                className="uk-button uk-button-primary uk-width-1-1"
+                onClick={captureImage}
+              >
+                {"Capture"}
+              </button>
+            ) : (
+              <button
+                className="uk-button uk-button-secondary uk-width-1-1"
+                onClick={retakeImage}
+              >
+                {"Retake"}
+              </button>
+            )}
+          </div>
+        ) : null}
+
+        {imageTaken ? (
+          <div>
+            <button
+              className="uk-button uk-button-primary uk-width-1-1 uk-margin-medium-top"
+              onClick={submitImage}
+            >
+              {"Submit"}
+            </button>
+
+            <button
+              className="uk-button uk-button-default uk-width-1-1 uk-margin-top"
+              onClick={returnToDashboard}
+            >
+              {"Cancel"}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </React.Fragment>
   );
 };

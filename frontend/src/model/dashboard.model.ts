@@ -9,8 +9,7 @@ export enum DashboardView {
   SELECT_UPLOAD_TYPE,
   WEBCAM,
   SETTINGS,
-  PROCESSING,
-  RESULTS,
+  REPORT,
 }
 
 export type SwitchDashboardView = (view: DashboardView) => void;
