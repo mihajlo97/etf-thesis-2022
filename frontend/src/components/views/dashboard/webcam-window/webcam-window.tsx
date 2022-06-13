@@ -12,7 +12,7 @@ import {
 import {
   getUploadedImageURL,
   storeUploadedImage,
-} from "../../../../service/dashboard.service";
+} from "../../../../service/image.service";
 
 import { Spinner } from "../../../UI/spinner/spinner";
 

@@ -5,7 +5,7 @@ import {
   DashboardView,
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
-import { storeUploadedImage } from "../../../../service/dashboard.service";
+import { storeUploadedImage } from "../../../../service/image.service";
 
 export interface SelectUploadTypeProps {
   transition: SwitchDashboardView;

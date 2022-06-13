@@ -2,7 +2,7 @@
 import React from "react";
 
 import { DashboardView } from "../../../model/dashboard.model";
-import { removeUploadedImage } from "../../../service/dashboard.service";
+import { removeUploadedImage } from "../../../service/image.service";
 
 import { DefaultDashboard } from "../../views/dashboard/default_dashboard/default-dashboard";
 import { Report } from "../../views/dashboard/report/report";
