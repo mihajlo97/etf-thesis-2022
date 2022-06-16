@@ -1,8 +1,9 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from "react";
-import { RESOLUTIONS } from "../../../../consts/dashboard.consts";
+import { MODELS, RESOLUTIONS } from "../../../../consts/dashboard.consts";
 import {
   DashboardView,
+  Resolution,
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
 import {
@@ -16,12 +17,21 @@ export interface SettingsProps {
 }
 
 export const Settings = ({ transition }: SettingsProps) => {
+  const [resolution, setResolution] = React.useState(RESOLUTIONS[0]);
+  const [model, setModel] = React.useState(MODELS[0]);
+
   const resolutionId = "settings_select_resolution";
   const modelId = "settings_select_model";
 
   const onChangeResolution = (ev: any) => {
     const res = RESOLUTIONS[ev.target.value];
     resizeImage(res.width, res.height);
+
+    setResolution(res);
+  };
+
+  const onChangeModel = (ev: any) => {
+    setModel(MODELS[ev.target.value]);
   };
 
   const renderChooseResolution = () => (
@@ -38,9 +48,24 @@ export const Settings = ({ transition }: SettingsProps) => {
     </select>
   );
 
+  const renderChooseModel = () => (
+    <select
+      id={modelId}
+      className="uk-select uk-margin-small-top"
+      onChange={onChangeModel}
+    >
+      {MODELS.map((model, idx) => (
+        <option key={idx} defaultChecked={idx === 0} value={idx}>
+          {model}
+        </option>
+      ))}
+    </select>
+  );
+
   const returnToDashboard = () => transition(DashboardView.INITIAL);
 
-  const submitReport = () => transition(DashboardView.REPORT);
+  const submitReport = () =>
+    transition(DashboardView.REPORT, { res: resolution, model: model });
 
   React.useEffect(() => {
     clearResizedImage();
@@ -54,6 +79,7 @@ export const Settings = ({ transition }: SettingsProps) => {
 
         <div>
           <label>{"Image to process:"}</label>
+          <br />
           <img src={getUploadedImageURL()} className="uk-margin-small-top" />
         </div>
 
@@ -69,11 +95,7 @@ export const Settings = ({ transition }: SettingsProps) => {
 
         <div className="uk-margin-top">
           <label htmlFor={modelId}>{"Model: "}</label>
-          <select id={modelId} className="uk-select uk-margin-small-top">
-            <option defaultChecked>{"Model A"}</option>
-            <option>{"Model B"}</option>
-            <option>{"Model C"}</option>
-          </select>
+          {renderChooseModel()}
           <small>
             {
               "Choose the machine learning model to be applied during processing."

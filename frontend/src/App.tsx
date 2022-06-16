@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BrowserRouter, Route, Navigate, Routes } from "react-router-dom";
+import * as tf from "@tensorflow/tfjs-core";
+import "@tensorflow/tfjs-backend-cpu";
+
 import { AuthGuard } from "./components/auth/auth-guard/auth-guard";
 import { Main } from "./components/layout/main/main";
 import { Login } from "./components/pages/login/login";

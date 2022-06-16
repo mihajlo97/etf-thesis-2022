@@ -10,6 +10,11 @@ export interface Resolution {
   height: number;
 }
 
+export interface ReportArgs {
+  res: Resolution;
+  model: string;
+}
+
 export enum DashboardView {
   INITIAL = 1,
   SELECT_UPLOAD_TYPE,
@@ -18,4 +23,4 @@ export enum DashboardView {
   REPORT,
 }
 
-export type SwitchDashboardView = (view: DashboardView) => void;
+export type SwitchDashboardView = (view: DashboardView, args?: any) => void;

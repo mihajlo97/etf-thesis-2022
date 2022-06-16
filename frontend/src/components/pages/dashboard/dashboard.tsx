@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 
-import { DashboardView } from "../../../model/dashboard.model";
-import { removeUploadedImage } from "../../../service/image.service";
+import { DashboardView, ReportArgs } from "../../../model/dashboard.model";
+import { removeUploadedImages } from "../../../service/image.service";
 
 import { DefaultDashboard } from "../../views/dashboard/default_dashboard/default-dashboard";
 import { Report } from "../../views/dashboard/report/report";
@@ -12,9 +12,14 @@ import { WebcamWindow } from "../../views/dashboard/webcam-window/webcam-window"
 
 export const Dashboard = () => {
   const [view, setView] = React.useState(DashboardView.INITIAL);
+  const [viewArgs, setViewArgs] = React.useState(undefined);
 
-  const switchToView = (view: DashboardView) => {
+  const switchToView = (view: DashboardView, args?: any) => {
     setView(view);
+
+    if (args) {
+      setViewArgs(args);
+    }
   };
 
   const renderView = (view: DashboardView): JSX.Element | null => {
@@ -32,7 +37,12 @@ export const Dashboard = () => {
         return <Settings transition={switchToView} />;
 
       case DashboardView.REPORT:
-        return <Report transition={switchToView} />;
+        return (
+          <Report
+            args={viewArgs ?? ({} as ReportArgs)}
+            transition={switchToView}
+          />
+        );
 
       default:
         return null;
@@ -41,9 +51,9 @@ export const Dashboard = () => {
 
   React.useEffect(() => {
     if (view === DashboardView.INITIAL) {
-      removeUploadedImage();
+      removeUploadedImages();
     }
-  }, []);
+  }, [view]);
 
   return (
     <React.Fragment>

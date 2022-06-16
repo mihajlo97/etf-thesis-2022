@@ -6,7 +6,7 @@ export const DEFAULT_WEBCAM_CONSTRAINTS = {
   facingMode: "user",
 } as VideoConstraints;
 
-export const RESOLUTIONS: Resolution[] = [
+export const RESOLUTIONS = [
   {
     label: "720p",
     width: 1280,
@@ -27,4 +27,10 @@ export const RESOLUTIONS: Resolution[] = [
     width: 256,
     height: 144,
   },
+] as Resolution[];
+
+export const MODELS = [
+  "Image classification",
+  "Object detection",
+  "Face detection",
 ];
