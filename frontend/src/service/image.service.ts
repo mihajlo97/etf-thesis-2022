@@ -82,9 +82,10 @@ export const transformImage = async (
   try {
     await image.decode();
 
+    const keepAspectRatio = aspectRatio.id === ORIGINAL_ASPECT_RATIO_ID;
+    const squareAspectRatio = aspectRatio.id === SQUARE_ASPECT_RATIO_ID;
     const noTransformationsNeeded =
-      imageScale.id === ORIGINAL_IMAGE_SCALE_ID &&
-      aspectRatio.id === ORIGINAL_ASPECT_RATIO_ID;
+      imageScale.id === ORIGINAL_IMAGE_SCALE_ID && keepAspectRatio;
 
     if (noTransformationsNeeded) {
       return;
@@ -93,7 +94,10 @@ export const transformImage = async (
     const rescaledWidth = Math.round(image.width * imageScale.multiplier);
     const rescaledHeight = Math.round(image.height * imageScale.multiplier);
 
-    const squareAspectRatio = aspectRatio.id === SQUARE_ASPECT_RATIO_ID;
+    if (keepAspectRatio) {
+      resizeImage(rescaledWidth, rescaledHeight);
+      return;
+    }
 
     if (squareAspectRatio) {
       resizeToSquareAspectRatio(rescaledWidth, rescaledHeight);
