@@ -1,18 +1,16 @@
+import { AspectRatio, ImageScale } from "./image.model";
+import { ImageClassificationModel } from "./tensorflow.model";
+
 export interface VideoConstraints {
   width: number;
   height: number;
   facingMode: string;
 }
 
-export interface Resolution {
-  label: string;
-  width: number;
-  height: number;
-}
-
 export interface ReportArgs {
-  res: Resolution;
-  model: string;
+  imageScale: ImageScale;
+  aspectRatio: AspectRatio;
+  model: ImageClassificationModel;
 }
 
 export enum DashboardView {

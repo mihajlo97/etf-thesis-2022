@@ -115,7 +115,7 @@ export const Login = () => {
     <React.Fragment>
       <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-xlarge-top">
         <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
-          <h3 className="uk-card-title">{"Welcome to Recognize Me!"}</h3>
+          <h3 className="uk-card-title">{"Welcome to Recognize That!"}</h3>
 
           <form onSubmit={(ev) => ev.preventDefault()}>
             <fieldset className="uk-fieldset">

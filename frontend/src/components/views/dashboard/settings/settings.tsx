@@ -1,48 +1,70 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from "react";
-import { MODELS, RESOLUTIONS } from "../../../../consts/dashboard.consts";
 import {
   DashboardView,
-  Resolution,
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
 import {
   clearResizedImage,
+  getAspectRatio,
+  getAspectRatios,
+  getImageScale,
+  getImageScales,
   getUploadedImageURL,
-  resizeImage,
 } from "../../../../service/image.service";
+import { getModel, getModels } from "../../../../service/tensorflow.service";
 
 export interface SettingsProps {
   transition: SwitchDashboardView;
 }
 
 export const Settings = ({ transition }: SettingsProps) => {
-  const [resolution, setResolution] = React.useState(RESOLUTIONS[0]);
-  const [model, setModel] = React.useState(MODELS[0]);
+  const [imageScale, setImageScale] = React.useState(getImageScale(0));
+  const [aspectRatio, setAspectRatio] = React.useState(getAspectRatio(0));
+  const [model, setModel] = React.useState(getModel(0));
 
-  const resolutionId = "settings_select_resolution";
-  const modelId = "settings_select_model";
+  const selectImageScaleId = "settings_select_image_scale";
+  const selectAspectRatioId = "settings_select_aspect_ratio";
+  const selectModelId = "settings_select_model";
 
-  const onChangeResolution = (ev: any) => {
-    const res = RESOLUTIONS[ev.target.value];
-    resizeImage(res.width, res.height);
+  const onChangeImageScale = (ev: any) => {
+    const scale = getImageScale(ev.target.value as number);
 
-    setResolution(res);
+    setImageScale(scale);
   };
 
-  const onChangeModel = (ev: any) => {
-    setModel(MODELS[ev.target.value]);
+  const onChangeAspectRatio = (ev: any) => {
+    const ratio = getAspectRatio(ev.target.value as number);
+
+    setAspectRatio(ratio);
   };
 
-  const renderChooseResolution = () => (
+  const onChangeModel = (ev: any) =>
+    setModel(getModel(ev.target.value as number));
+
+  const renderChooseImageScale = () => (
     <select
-      id={resolutionId}
+      id={selectImageScaleId}
       className="uk-select uk-margin-small-top"
-      onChange={onChangeResolution}
+      onChange={onChangeImageScale}
     >
-      {RESOLUTIONS.map((res, idx) => (
+      {getImageScales().map((scale, idx) => (
         <option key={idx} defaultChecked={idx === 0} value={idx}>
-          {`${res.label} (${res.width}x${res.height})`}
+          {scale.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const renderChooseAspectRatio = () => (
+    <select
+      id={selectAspectRatioId}
+      className="uk-select uk-margin-small-top"
+      onChange={onChangeAspectRatio}
+    >
+      {getAspectRatios().map((ratio, idx) => (
+        <option key={idx} defaultChecked={idx === 0} value={idx}>
+          {ratio.label}
         </option>
       ))}
     </select>
@@ -50,13 +72,13 @@ export const Settings = ({ transition }: SettingsProps) => {
 
   const renderChooseModel = () => (
     <select
-      id={modelId}
+      id={selectModelId}
       className="uk-select uk-margin-small-top"
       onChange={onChangeModel}
     >
-      {MODELS.map((model, idx) => (
+      {getModels().map((model, idx) => (
         <option key={idx} defaultChecked={idx === 0} value={idx}>
-          {model}
+          {model.label}
         </option>
       ))}
     </select>
@@ -65,7 +87,7 @@ export const Settings = ({ transition }: SettingsProps) => {
   const returnToDashboard = () => transition(DashboardView.INITIAL);
 
   const submitReport = () =>
-    transition(DashboardView.REPORT, { res: resolution, model: model });
+    transition(DashboardView.REPORT, { imageScale, aspectRatio, model });
 
   React.useEffect(() => {
     clearResizedImage();
@@ -84,21 +106,27 @@ export const Settings = ({ transition }: SettingsProps) => {
         </div>
 
         <div className="uk-margin-medium-top">
-          <label htmlFor={resolutionId}>{"Resolution: "}</label>
-          {renderChooseResolution()}
+          <label htmlFor={selectImageScaleId}>{"Image scale: "}</label>
+          {renderChooseImageScale()}
           <small>
             {
-              "The picture will be resized to the chosen resolution for processing."
+              "The selected multiplier will be applied to the image's width and height."
             }
           </small>
         </div>
 
         <div className="uk-margin-top">
-          <label htmlFor={modelId}>{"Model: "}</label>
+          <label htmlFor={selectAspectRatioId}>{"Aspect ratio: "}</label>
+          {renderChooseAspectRatio()}
+          <small>{"Image will be resized to the selected aspect ratio."}</small>
+        </div>
+
+        <div className="uk-margin-top">
+          <label htmlFor={selectModelId}>{"Model: "}</label>
           {renderChooseModel()}
           <small>
             {
-              "Choose the machine learning model to be applied during processing."
+              "The selected machine learning model will be applied during image processing."
             }
           </small>
         </div>

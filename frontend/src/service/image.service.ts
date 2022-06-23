@@ -1,7 +1,18 @@
+import { ASPECT_RATIO, IMAGE_SCALES } from "../consts/image.consts";
 import {
   KEY_RESIZED_IMAGE_URL,
   KEY_UPLOADED_IMAGE_URL,
 } from "../consts/keys.consts";
+
+export const getImageScales = () => IMAGE_SCALES;
+
+export const getImageScale = (imageScaleId: number) =>
+  getImageScales()[imageScaleId];
+
+export const getAspectRatios = () => ASPECT_RATIO;
+
+export const getAspectRatio = (aspectRatioId: number) =>
+  getAspectRatios()[aspectRatioId];
 
 export const getUploadedImageURL = () =>
   sessionStorage.getItem(KEY_UPLOADED_IMAGE_URL) ?? "";

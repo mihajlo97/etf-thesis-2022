@@ -28,7 +28,7 @@ export const Report = ({ transition, args }: ResultsProps) => {
   const [state, setState] = React.useState("processing" as ReportState);
   const [results, setResults] = React.useState([] as Result[]);
 
-  const { res, model } = args;
+  const { imageScale, aspectRatio, model } = args;
 
   const shouldDisplayResults = () => state === "results";
 
@@ -41,22 +41,17 @@ export const Report = ({ transition, args }: ResultsProps) => {
     </React.Fragment>
   );
 
-  const getImageClassificationResults = () =>
-    (results as ImageClassificationResult[]).map((result, idx) => (
-      <React.Fragment>
-        <span key={idx}>{`${result.className} ${result.probability}`}</span>
-        <br />
-      </React.Fragment>
-    ));
-
   const getResults = () => {
     if (!shouldDisplayResults()) {
       return null;
     }
 
-    if (model.match(/image/i)) {
-      return getImageClassificationResults();
-    }
+    return (results as ImageClassificationResult[]).map((result, idx) => (
+      <React.Fragment>
+        <span key={idx}>{`${result.className} ${result.probability}`}</span>
+        <br />
+      </React.Fragment>
+    ));
   };
 
   const returnToSettings = () => transition(DashboardView.SETTINGS);
@@ -142,16 +137,16 @@ export const Report = ({ transition, args }: ResultsProps) => {
               <img src={getSourceImageURL()} className="uk-margin-small-top" />
             </div>
 
-            <div className="uk-margin-medium-top">
+            {/*<div className="uk-margin-medium-top">
               <label style={getLabelStyle()}>{"Image resolution:"}</label>
               <br />
-              <span>{`${res.width}x${res.height}`}</span>
-            </div>
+              <span>{`TBA`}</span>
+              </div>*/}
 
             <div className="uk-margin-top">
               <label style={getLabelStyle()}>{"Model applied:"}</label>
               <br />
-              <span>{model}</span>
+              <span>{model.label}</span>
             </div>
 
             <div className="uk-margin-top">
