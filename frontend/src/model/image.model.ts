@@ -10,3 +10,8 @@ export interface AspectRatio {
   aspectY: number;
   label: string;
 }
+
+export interface Resolution {
+  width: number;
+  height: number;
+}

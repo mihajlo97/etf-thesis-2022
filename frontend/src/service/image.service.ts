@@ -1,8 +1,15 @@
-import { ASPECT_RATIO, IMAGE_SCALES } from "../consts/image.consts";
+import {
+  ASPECT_RATIO,
+  IMAGE_SCALES,
+  ORIGINAL_ASPECT_RATIO_ID,
+  ORIGINAL_IMAGE_SCALE_ID,
+  SQUARE_ASPECT_RATIO_ID,
+} from "../consts/image.consts";
 import {
   KEY_RESIZED_IMAGE_URL,
   KEY_UPLOADED_IMAGE_URL,
 } from "../consts/keys.consts";
+import { AspectRatio, ImageScale } from "../model/image.model";
 
 export const getImageScales = () => IMAGE_SCALES;
 
@@ -39,29 +46,7 @@ export const removeUploadedImages = () => {
 export const clearResizedImage = () =>
   sessionStorage.removeItem(KEY_RESIZED_IMAGE_URL);
 
-export const getSourceImageData = async (): Promise<ImageData> => {
-  const image = new Image();
-  image.src = getSourceImageURL();
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    return new Promise((resolve, reject) => reject());
-  }
-
-  await image.decode();
-
-  const width = image.width;
-  const height = image.height;
-
-  context.drawImage(image, 0, 0, width, height);
-  const imageData = context.getImageData(0, 0, width, height);
-
-  return imageData;
-};
-
-export const resizeImage = (resizeWidth: number, resizeHeight: number) => {
+const resizeImage = (resizeWidth: number, resizeHeight: number) => {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
@@ -74,4 +59,87 @@ export const resizeImage = (resizeWidth: number, resizeHeight: number) => {
   context?.drawImage(image, 0, 0, resizeWidth, resizeHeight);
 
   canvas.toBlob((blob) => storeResizedImage(blob));
+};
+
+const resizeToSquareAspectRatio = (
+  rescaledWidth: number,
+  rescaledHeight: number
+) => {
+  const transformedWidth =
+    rescaledWidth >= rescaledHeight ? rescaledWidth : rescaledHeight;
+  const transformedHeight = transformedWidth;
+
+  resizeImage(transformedWidth, transformedHeight);
+};
+
+export const transformImage = async (
+  imageScale: ImageScale,
+  aspectRatio: AspectRatio
+) => {
+  const image = new Image();
+  image.src = getUploadedImageURL();
+
+  try {
+    await image.decode();
+
+    const noTransformationsNeeded =
+      imageScale.id === ORIGINAL_IMAGE_SCALE_ID &&
+      aspectRatio.id === ORIGINAL_ASPECT_RATIO_ID;
+
+    if (noTransformationsNeeded) {
+      return;
+    }
+
+    const rescaledWidth = Math.round(image.width * imageScale.multiplier);
+    const rescaledHeight = Math.round(image.height * imageScale.multiplier);
+
+    const squareAspectRatio = aspectRatio.id === SQUARE_ASPECT_RATIO_ID;
+
+    if (squareAspectRatio) {
+      resizeToSquareAspectRatio(rescaledWidth, rescaledHeight);
+      return;
+    }
+
+    const { aspectX, aspectY } = aspectRatio;
+    let transformedWidth = rescaledWidth,
+      transformedHeight = rescaledHeight;
+
+    if (aspectX > aspectY) {
+      transformedHeight = Math.floor((aspectY / aspectX) * transformedWidth);
+    } else {
+      transformedWidth = Math.floor((aspectX / aspectY) * transformedHeight);
+    }
+
+    resizeImage(transformedWidth, transformedHeight);
+  } catch (err) {
+    console.log("TransformImageError", { err });
+  }
+};
+
+export const getSourceImageData = async (): Promise<ImageData> => {
+  const image = new Image();
+  image.src = getSourceImageURL();
+
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return new Promise((resolve, reject) => reject());
+  }
+
+  try {
+    await image.decode();
+
+    const width = image.width;
+    const height = image.height;
+
+    context.drawImage(image, 0, 0, width, height);
+    const imageData = context.getImageData(0, 0, width, height);
+
+    return imageData;
+  } catch (err) {
+    console.log("GetSourceImageDataError", { err });
+
+    return new Promise((resolve, reject) => reject());
+  }
 };

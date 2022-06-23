@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/anchor-has-content */
 /* eslint-disable jsx-a11y/alt-text */
@@ -8,11 +9,15 @@ import {
   ReportArgs,
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
+import { Resolution } from "../../../../model/image.model";
 import {
-  ImageClassificationResult,
-  Result,
+  ImageClassificationResults,
+  PredictionResult,
 } from "../../../../model/tensorflow.model";
-import { getSourceImageURL } from "../../../../service/image.service";
+import {
+  getSourceImageURL,
+  transformImage,
+} from "../../../../service/image.service";
 import { classifyImage } from "../../../../service/tensorflow.service";
 
 import { Spinner } from "../../../UI/spinner/spinner";
@@ -26,11 +31,17 @@ export type ReportState = "processing" | "error" | "results";
 
 export const Report = ({ transition, args }: ResultsProps) => {
   const [state, setState] = React.useState("processing" as ReportState);
-  const [results, setResults] = React.useState([] as Result[]);
+  const [results, setResults] = React.useState([] as PredictionResult[]);
+  const [resolution, setResolution] = React.useState({
+    width: 0,
+    height: 0,
+  } as Resolution);
 
   const { imageScale, aspectRatio, model } = args;
 
   const shouldDisplayResults = () => state === "results";
+
+  const shouldProcessImage = () => state === "processing";
 
   const getLabelStyle = () => ({ fontWeight: "bold" });
 
@@ -46,11 +57,11 @@ export const Report = ({ transition, args }: ResultsProps) => {
       return null;
     }
 
-    return (results as ImageClassificationResult[]).map((result, idx) => (
-      <React.Fragment>
-        <span key={idx}>{`${result.className} ${result.probability}`}</span>
+    return (results as PredictionResult[]).map((result, idx) => (
+      <div key={idx}>
+        <span>{`${result.className} ${result.probability}`}</span>
         <br />
-      </React.Fragment>
+      </div>
     ));
   };
 
@@ -62,9 +73,11 @@ export const Report = ({ transition, args }: ResultsProps) => {
 
   const generateReport = async () => {
     try {
-      const tfjsResults = await classifyImage();
+      const classificationResults = await classifyImage();
+      const { width, height } = classificationResults.resolution;
 
-      setResults([...tfjsResults]);
+      setResults([...classificationResults.results]);
+      setResolution({ width, height });
       setState("results");
     } catch (err) {
       setState("error");
@@ -72,8 +85,8 @@ export const Report = ({ transition, args }: ResultsProps) => {
   };
 
   React.useEffect(() => {
-    if (state === "processing") {
-      generateReport();
+    if (shouldProcessImage()) {
+      transformImage(imageScale, aspectRatio).then(() => generateReport());
     }
   }, [state]);
 
@@ -137,11 +150,19 @@ export const Report = ({ transition, args }: ResultsProps) => {
               <img src={getSourceImageURL()} className="uk-margin-small-top" />
             </div>
 
-            {/*<div className="uk-margin-medium-top">
-              <label style={getLabelStyle()}>{"Image resolution:"}</label>
+            {
+              <div className="uk-margin-medium-top">
+                <label style={getLabelStyle()}>{"Image resolution:"}</label>
+                <br />
+                <span>{`${resolution.width}x${resolution.height}`}</span>
+              </div>
+            }
+
+            <div className="uk-margin-top">
+              <label style={getLabelStyle()}>{"Aspect ratio:"}</label>
               <br />
-              <span>{`TBA`}</span>
-              </div>*/}
+              <span>{aspectRatio.label}</span>
+            </div>
 
             <div className="uk-margin-top">
               <label style={getLabelStyle()}>{"Model applied:"}</label>

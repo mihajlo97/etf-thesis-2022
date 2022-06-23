@@ -73,3 +73,7 @@ export const ASPECT_RATIO = [
     label: "2:3",
   },
 ] as AspectRatio[];
+
+export const ORIGINAL_IMAGE_SCALE_ID = 0;
+export const ORIGINAL_ASPECT_RATIO_ID = 0;
+export const SQUARE_ASPECT_RATIO_ID = 1;

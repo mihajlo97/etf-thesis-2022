@@ -27,17 +27,11 @@ export const Settings = ({ transition }: SettingsProps) => {
   const selectAspectRatioId = "settings_select_aspect_ratio";
   const selectModelId = "settings_select_model";
 
-  const onChangeImageScale = (ev: any) => {
-    const scale = getImageScale(ev.target.value as number);
+  const onChangeImageScale = (ev: any) =>
+    setImageScale(getImageScale(ev.target.value as number));
 
-    setImageScale(scale);
-  };
-
-  const onChangeAspectRatio = (ev: any) => {
-    const ratio = getAspectRatio(ev.target.value as number);
-
-    setAspectRatio(ratio);
-  };
+  const onChangeAspectRatio = (ev: any) =>
+    setAspectRatio(getAspectRatio(ev.target.value as number));
 
   const onChangeModel = (ev: any) =>
     setModel(getModel(ev.target.value as number));

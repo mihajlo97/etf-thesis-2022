@@ -1,6 +1,6 @@
-export interface Result {}
+import { Resolution } from "./image.model";
 
-export interface ImageClassificationResult extends Result {
+export interface PredictionResult {
   className: string;
   probability: number;
 }
@@ -8,4 +8,9 @@ export interface ImageClassificationResult extends Result {
 export interface ImageClassificationModel {
   id: number;
   label: string;
+}
+
+export interface ImageClassificationResults {
+  resolution: Resolution;
+  results: PredictionResult[];
 }
