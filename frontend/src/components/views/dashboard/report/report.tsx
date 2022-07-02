@@ -10,15 +10,15 @@ import {
   SwitchDashboardView,
 } from "../../../../model/dashboard.model";
 import { Resolution } from "../../../../model/image.model";
-import {
-  ImageClassificationResults,
-  PredictionResult,
-} from "../../../../model/tensorflow.model";
+import { PredictionResult } from "../../../../model/tensorflow.model";
 import {
   getSourceImageURL,
   transformImage,
 } from "../../../../service/image.service";
-import { classifyImage } from "../../../../service/tensorflow.service";
+import {
+  classifyImageLocally,
+  sendImageForClassification,
+} from "../../../../service/tensorflow.service";
 
 import { Spinner } from "../../../UI/spinner/spinner";
 
@@ -73,7 +73,10 @@ export const Report = ({ transition, args }: ResultsProps) => {
 
   const generateReport = async () => {
     try {
-      const classificationResults = await classifyImage();
+      // const classificationResults = await classifyImageLocally();
+      const classificationResults = await sendImageForClassification(
+        model.name
+      );
       const { width, height } = classificationResults.resolution;
 
       setResults([...classificationResults.results]);

@@ -2,6 +2,9 @@ import os
 import re
 import uuid
 import logging
+import base64
+import io
+import numpy as np
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from functools import wraps
@@ -9,9 +12,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity, get_jwt
 from flask_cors import CORS
+from tensorflow.keras.applications import vgg19, resnet50, mobilenet_v2, imagenet_utils
+from tensorflow.keras.preprocessing import image
+from PIL import Image
 
 
-# Server and database config:
+# Server and database setup:
 
 app = Flask(__name__)
 
@@ -30,8 +36,12 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
+vggModel = vgg19.VGG19(weights='imagenet')
+resnetModel = resnet50.ResNet50(weights='imagenet')
+mobilenetModel = mobilenet_v2.MobileNetV2(weights='imagenet')
 
 # Database schema setup:
+
 
 class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +56,14 @@ class Users(db.Model):
 
 
 # Helper functions
+def prepare_image_data(img):
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+
+    img = img.resize((224, 224))
+    img = image.img_to_array(img)
+
+    return np.expand_dims(img, axis=0)
 
 
 # API:
@@ -167,6 +185,58 @@ def refresh():
     refreshToken = create_refresh_token(identity=user.public_id)
 
     return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
+
+
+@app.route('/model/classify', methods=['POST'])
+@jwt_required()
+def classify_image():
+    # Classify the sent image and return the predicted classification results.
+    # Headers: { Authorization: Bearer <access_token> }
+    # Request: { img, model }
+    # Response: [
+    #   200 { results }
+    #   400 { msg }
+    #   401 { msg }
+    # ]
+
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    data = request.get_json()
+    model = request.json.get('model', '')
+    img = request.json.get('img', '')
+
+    if ('model' not in data) or (len(model) == 0):
+        return jsonify({'msg': 'Missing field model.'}), 400
+
+    if (model != 'mobilenet') and (model != 'vgg') and (model != 'resnet'):
+        return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
+
+    if ('img' not in data) or (len(img) == 0):
+        return jsonify({'msg': 'Missing field img.'}), 400
+
+    decodedImg = base64.b64decode(img)
+    imgFile = Image.open(io.BytesIO(decodedImg))
+    imgData = prepare_image_data(imgFile)
+
+    predictions = []
+
+    if (model == 'mobilenet'):
+        predictions = mobilenetModel.predict(imgData)
+    elif (model == 'vgg'):
+        predictions = vggModel.predict(imgData)
+    elif (model == 'resnet'):
+        predictions = resnetModel.predict(imgData)
+
+    decodedResults = imagenet_utils.decode_predictions(predictions)
+    results = []
+
+    for result in decodedResults[0]:
+        results.append({'className': result[1], 'probability': str(result[2])})
+
+    return jsonify({'results': results}), 200
 
 
 # Startup:

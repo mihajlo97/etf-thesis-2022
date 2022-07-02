@@ -9,7 +9,7 @@ import {
   KEY_RESIZED_IMAGE_URL,
   KEY_UPLOADED_IMAGE_URL,
 } from "../consts/keys.consts";
-import { AspectRatio, ImageScale } from "../model/image.model";
+import { AspectRatio, ImageScale, SourceImageData } from "../model/image.model";
 
 export const getImageScales = () => IMAGE_SCALES;
 
@@ -120,7 +120,9 @@ export const transformImage = async (
   }
 };
 
-export const getSourceImageData = async (): Promise<ImageData> => {
+export const getSourceImageData = async (
+  fetchBase64?: boolean
+): Promise<SourceImageData> => {
   const image = new Image();
   image.src = getSourceImageURL();
 
@@ -140,7 +142,19 @@ export const getSourceImageData = async (): Promise<ImageData> => {
     context.drawImage(image, 0, 0, width, height);
     const imageData = context.getImageData(0, 0, width, height);
 
-    return imageData;
+    if (fetchBase64) {
+      const dataURL = canvas.toDataURL("image/jpg");
+      const base64 = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+
+      return {
+        imageData,
+        base64,
+      };
+    }
+
+    return {
+      imageData,
+    };
   } catch (err) {
     console.log("GetSourceImageDataError", { err });
 

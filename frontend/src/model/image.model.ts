@@ -15,3 +15,8 @@ export interface Resolution {
   width: number;
   height: number;
 }
+
+export interface SourceImageData {
+  imageData: ImageData;
+  base64?: string;
+}

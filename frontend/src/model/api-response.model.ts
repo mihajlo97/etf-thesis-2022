@@ -1,9 +1,14 @@
 export interface RegisterUserResponse {
-    msg?: string;
-};
+  msg?: string;
+}
 
 export interface LoginUserResponse {
-    msg?: string;
-    accessToken?: string;
-    refreshToken?: string;
+  msg?: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+export interface ClassifyImageResponse {
+  msg?: string;
+  results?: any;
 }
