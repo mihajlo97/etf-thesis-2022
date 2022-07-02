@@ -194,7 +194,7 @@ def classify_image():
     # Headers: { Authorization: Bearer <access_token> }
     # Request: { img, model }
     # Response: [
-    #   200 { results }
+    #   200 { results[{ className, probability }] }
     #   400 { msg }
     #   401 { msg }
     # ]
