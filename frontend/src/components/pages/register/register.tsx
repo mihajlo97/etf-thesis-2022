@@ -1,18 +1,18 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes.consts";
-import { registerUser } from "../../../service/api.service";
-import { Footer } from "../../layout/footer/footer";
-import { Spinner } from "../../UI/spinner/spinner";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../../../consts/routes.consts';
+import { registerUser } from '../../../service/api.service';
+import { Footer } from '../../layout/footer/footer';
+import { Spinner } from '../../UI/spinner/spinner';
 
 export const Register = () => {
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
 
   const [errorFirstName, setErrorFirstName] = React.useState(false);
   const [errorLastName, setErrorLastName] = React.useState(false);
@@ -23,13 +23,12 @@ export const Register = () => {
   const [submitted, setSubmitted] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [submitSuccess, setSubmitSuccess] = React.useState(false);
-  const [submitErrorMsg, setSubmitErrorMsg] = React.useState("");
+  const [submitErrorMsg, setSubmitErrorMsg] = React.useState('');
 
-  const validateNotEmpty = (arg: string) => arg !== "";
+  const validateNotEmpty = (arg: string) => arg !== '';
   const validateIdentical = (arg: string, match: string) => arg === match;
   const validateEmailFormat = (arg: string) => /.+@.+\..+/.test(arg);
-  const validatePasswordFormat = (arg: string) =>
-    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(arg);
+  const validatePasswordFormat = (arg: string) => /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(arg);
 
   const assertValidFirstName = (arg: string) => {
     const valid = validateNotEmpty(arg);
@@ -71,12 +70,9 @@ export const Register = () => {
     const validLastName = assertValidLastName(lastName);
     const validEmail = assertValidEmail(email);
     const validPassword = assertValidPassword(password);
-    const validConfirmPassword = assertValidConfirmPassword(
-      confirmPassword,
-      password
-    );
+    const validConfirmPassword = assertValidConfirmPassword(confirmPassword, password);
 
-    console.log("Validation", {
+    console.log('Validation', {
       validFirstName,
       validLastName,
       validEmail,
@@ -84,13 +80,7 @@ export const Register = () => {
       validConfirmPassword,
     });
 
-    return (
-      validFirstName &&
-      validLastName &&
-      validEmail &&
-      validPassword &&
-      validConfirmPassword
-    );
+    return validFirstName && validLastName && validEmail && validPassword && validConfirmPassword;
   };
 
   const onChangeFirstName = (ev: any) => {
@@ -148,7 +138,7 @@ export const Register = () => {
       return;
     }
 
-    console.log("RegisterSubmit", {
+    console.log('RegisterSubmit', {
       firstName,
       lastName,
       email,
@@ -158,26 +148,22 @@ export const Register = () => {
     });
 
     setSubmitting(true);
-    setSubmitErrorMsg("");
+    setSubmitErrorMsg('');
 
     registerUser({ firstName, lastName, email, password })
       .then((res) => {
-        console.log("RegisterUserSuccess", { res });
+        console.log('RegisterUserSuccess', { res });
 
-        setSubmitErrorMsg("");
+        setSubmitErrorMsg('');
         setSubmitSuccess(true);
       })
       .catch((err) => {
-        console.error("RegisterUserError", { err });
+        console.error('RegisterUserError', { err });
 
         if (err.response.status === 500) {
-          setSubmitErrorMsg(
-            "Email is already registered, please choose a different email for your account."
-          );
+          setSubmitErrorMsg('Email is already registered, please choose a different email for your account.');
         } else {
-          setSubmitErrorMsg(
-            "Something went wrong while processing your request, please try again."
-          );
+          setSubmitErrorMsg('Something went wrong while processing your request, please try again.');
         }
 
         setSubmitSuccess(false);
@@ -193,24 +179,22 @@ export const Register = () => {
     navigate(AppRoutes.login);
   };
 
-  const applyErrorStyleOn = (cond: boolean) => (cond ? "uk-form-danger" : "");
+  const applyErrorStyleOn = (cond: boolean) => (cond ? 'uk-form-danger' : '');
 
-  const shouldShowResponseErrorMessage = () => submitErrorMsg !== "";
+  const shouldShowResponseErrorMessage = () => submitErrorMsg !== '';
 
   const shouldShowSubmitSuccessMessage = () => submitSuccess;
 
   return (
-    <React.Fragment>
+    <>
       <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-xlarge-top">
         <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
-          <h3 className="uk-card-title">{"Register account"}</h3>
+          <h3 className="uk-card-title">{'Register account'}</h3>
 
           <form onSubmit={(ev) => ev.preventDefault()}>
             <fieldset className="uk-fieldset">
               <div className="uk-margin-bottom">
-                <label htmlFor="register_First-Name-Field">
-                  {"First name:"}
-                </label>
+                <label htmlFor="register_First-Name-Field">{'First name:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(errorFirstName)}`}
@@ -220,15 +204,11 @@ export const Register = () => {
                   onChange={onChangeFirstName}
                 ></input>
 
-                {errorFirstName ? (
-                  <small className="uk-text-danger">
-                    {"This field is required."}
-                  </small>
-                ) : null}
+                {errorFirstName ? <small className="uk-text-danger">{'This field is required.'}</small> : null}
               </div>
 
               <div className="uk-margin-bottom">
-                <label htmlFor="register_Last-Name-Field">{"Last name:"}</label>
+                <label htmlFor="register_Last-Name-Field">{'Last name:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(errorLastName)}`}
@@ -238,15 +218,11 @@ export const Register = () => {
                   onChange={onChangeLastName}
                 ></input>
 
-                {errorLastName ? (
-                  <small className="uk-text-danger">
-                    {"This field is required."}
-                  </small>
-                ) : null}
+                {errorLastName ? <small className="uk-text-danger">{'This field is required.'}</small> : null}
               </div>
 
               <div className="uk-margin-bottom">
-                <label htmlFor="register_Email-Field">{"Email:"}</label>
+                <label htmlFor="register_Email-Field">{'Email:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(errorEmail)}`}
@@ -257,14 +233,12 @@ export const Register = () => {
                 ></input>
 
                 {errorEmail ? (
-                  <small className="uk-text-danger">
-                    {"Email address is not in a valid format."}
-                  </small>
+                  <small className="uk-text-danger">{'Email address is not in a valid format.'}</small>
                 ) : null}
               </div>
 
               <div className="uk-margin-bottom">
-                <label htmlFor="register_Password-Field">{"Password:"}</label>
+                <label htmlFor="register_Password-Field">{'Password:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(errorPassword)}`}
@@ -275,55 +249,42 @@ export const Register = () => {
                 ></input>
 
                 {errorPassword ? (
-                  <small className="uk-text-danger">
-                    {"Password is not in a valid format."}
-                  </small>
+                  <small className="uk-text-danger">{'Password is not in a valid format.'}</small>
                 ) : null}
 
                 <br />
                 <small>
                   {
-                    "Password should contain at least 8 characters and at least one uppercase, one lowercase letter and at least one number. Example: passWord123"
+                    'Password should contain at least 8 characters and at least one uppercase, one lowercase letter and at least one number. Example: passWord123'
                   }
                 </small>
               </div>
 
               <div className="uk-margin-bottom">
-                <label htmlFor="register_Confirm-Password-Field">
-                  {"Confirm password:"}
-                </label>
+                <label htmlFor="register_Confirm-Password-Field">{'Confirm password:'}</label>
 
                 <input
-                  className={`uk-input ${applyErrorStyleOn(
-                    errorConfirmPassword
-                  )}`}
+                  className={`uk-input ${applyErrorStyleOn(errorConfirmPassword)}`}
                   id="register_Confirm-Password-Field"
                   type="password"
                   value={confirmPassword}
                   onChange={onChangeConfirmPassword}
                 ></input>
 
-                {errorConfirmPassword ? (
-                  <small className="uk-text-danger">
-                    {"Passwords do not match."}
-                  </small>
-                ) : null}
+                {errorConfirmPassword ? <small className="uk-text-danger">{'Passwords do not match.'}</small> : null}
               </div>
 
               <p className="uk-margin-bottom">
-                {"Already have an account? "}
-                <a onClick={navigateToLogin}>{"Login."}</a>
+                {'Already have an account? '}
+                <a onClick={navigateToLogin}>{'Login.'}</a>
               </p>
 
               <div className="uk-flex uk-flex-center">
                 {submitting ? (
                   <Spinner />
                 ) : (
-                  <button
-                    className="uk-button uk-button-primary"
-                    onClick={onSubmit}
-                  >
-                    {"Submit"}
+                  <button className="uk-button uk-button-primary" onClick={onSubmit}>
+                    {'Submit'}
                   </button>
                 )}
               </div>
@@ -339,9 +300,9 @@ export const Register = () => {
           {shouldShowSubmitSuccessMessage() ? (
             <div className="uk-alert-success uk-alert" uk-alert>
               <p>
-                <span>{"Account registration successful! "}</span>
+                <span>{'Account registration successful! '}</span>
                 <a className="uk-link-text" onClick={navigateToLogin}>
-                  {"Proceed to login."}
+                  {'Proceed to login.'}
                 </a>
               </p>
             </div>
@@ -350,6 +311,6 @@ export const Register = () => {
       </div>
 
       <Footer />
-    </React.Fragment>
+    </>
   );
 };

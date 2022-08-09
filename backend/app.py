@@ -5,6 +5,7 @@ import logging
 import base64
 import io
 import numpy as np
+import tensorflowjs as tfjs
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from functools import wraps
@@ -40,8 +41,8 @@ vggModel = vgg19.VGG19(weights='imagenet')
 resnetModel = resnet50.ResNet50(weights='imagenet')
 mobilenetModel = mobilenet_v2.MobileNetV2(weights='imagenet')
 
-# Database schema setup:
 
+# Database schema setup:
 
 class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -55,7 +56,8 @@ class Users(db.Model):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
 
 
-# Helper functions
+# Helper functions:
+
 def prepare_image_data(img):
     if img.mode != "RGB":
         img = img.convert("RGB")
@@ -187,14 +189,48 @@ def refresh():
     return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
 
 
+"""
+@app.route('/model/convert', methods=['POST'])
+def convert_and_export_model():
+    # Export the chosen model to a Tensorflow.js Layers format. This allows the frontend to load the model.
+    # Request: { model=['vgg', 'resnet'] }
+    # Response: [
+    #   200 {},
+    #   400 { msg }
+    # ]
+
+    data = request.get_json()
+    model = request.json.get('model', '')
+
+    if ('model' not in data) or (len(model) == 0):
+        return jsonify({'msg': 'Missing field model.'}), 400
+
+    if (model != 'vgg') and (model != 'resnet'):
+        return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
+
+    if (model == 'vgg'):
+        vggModel.compile(loss='mean_squared_error',
+                         optimizer='adam',
+                         metrics=['accuracy'])
+        tfjs.converters.save_keras_model(vggModel, 'models')
+    elif (model == 'resnet'):
+        resnetModel.compile(loss='mean_squared_error',
+                            optimizer='adam',
+                            metrics=['accuracy'])
+        tfjs.converters.save_keras_model(resnetModel, 'models')
+
+    return jsonify({}), 200
+"""
+
+
 @app.route('/model/classify', methods=['POST'])
 @jwt_required()
 def classify_image():
     # Classify the sent image and return the predicted classification results.
     # Headers: { Authorization: Bearer <access_token> }
-    # Request: { img, model }
+    # Request: { img, model=['mobilenet', 'vgg', 'resnet'] }
     # Response: [
-    #   200 { results[{ className, probability }] }
+    #   200 { results=[{ className, probability }] }
     #   400 { msg }
     #   401 { msg }
     # ]

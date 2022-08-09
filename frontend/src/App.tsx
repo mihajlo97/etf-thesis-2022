@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BrowserRouter, Route, Navigate, Routes } from "react-router-dom";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-cpu";
+import { BrowserRouter, Route, Navigate, Routes } from 'react-router-dom';
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-cpu';
 
-import { AuthGuard } from "./components/auth/auth-guard/auth-guard";
-import { Main } from "./components/layout/main/main";
-import { Login } from "./components/pages/login/login";
-import { Logout } from "./components/pages/logout/logout";
-import { PageNotFound } from "./components/pages/page-not-found/page-not-found";
-import { Register } from "./components/pages/register/register";
-import { Dashboard } from "./components/pages/dashboard/dashboard";
-import { Reports } from "./components/pages/reports/reports";
-import { AppRoutes } from "./consts/routes.consts";
+import { AuthGuard } from './components/auth/auth-guard/auth-guard';
+import { Main } from './components/layout/main/main';
+import { Login } from './components/pages/login/login';
+import { Logout } from './components/pages/logout/logout';
+import { PageNotFound } from './components/pages/page-not-found/page-not-found';
+import { Register } from './components/pages/register/register';
+import { Dashboard } from './components/pages/dashboard/dashboard';
+import { Reports } from './components/pages/reports/reports';
+import { AppRoutes } from './consts/routes.consts';
 
 const App = () => {
   return (

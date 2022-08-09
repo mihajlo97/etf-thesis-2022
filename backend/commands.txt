@@ -1,6 +1,6 @@
 # Run venv from \backend\:
 Set-ExecutionPolicy Unrestricted -Scope Process
-& .\.venv\Scripts\activate
+& .\env\Scripts\activate
 $env:FLASK_ENV = "development"
 
 # Install packages from requirements.txt from \backend\:

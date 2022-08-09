@@ -1,14 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from "react";
+import React from 'react';
 
-import { DashboardView, ReportArgs } from "../../../model/dashboard.model";
-import { removeUploadedImages } from "../../../service/image.service";
+import { DashboardView, ReportArgs } from '../../../model/dashboard.model';
+import { removeUploadedImages } from '../../../service/image.service';
 
-import { DefaultDashboard } from "../../views/dashboard/default_dashboard/default-dashboard";
-import { Report } from "../../views/dashboard/report/report";
-import { SelectUploadType } from "../../views/dashboard/select_upload_type/select-upload-type";
-import { Settings } from "../../views/dashboard/settings/settings";
-import { WebcamWindow } from "../../views/dashboard/webcam-window/webcam-window";
+import { DefaultDashboard } from '../../views/dashboard/default_dashboard/default-dashboard';
+import { Report } from '../../views/dashboard/report/report';
+import { SelectUploadType } from '../../views/dashboard/select_upload_type/select-upload-type';
+import { Settings } from '../../views/dashboard/settings/settings';
+import { WebcamWindow } from '../../views/dashboard/webcam-window/webcam-window';
 
 export const Dashboard = () => {
   const [view, setView] = React.useState(DashboardView.INITIAL);
@@ -37,12 +37,7 @@ export const Dashboard = () => {
         return <Settings transition={switchToView} />;
 
       case DashboardView.REPORT:
-        return (
-          <Report
-            args={viewArgs ?? ({} as ReportArgs)}
-            transition={switchToView}
-          />
-        );
+        return <Report args={viewArgs ?? ({} as ReportArgs)} transition={switchToView} />;
 
       default:
         return null;
@@ -56,12 +51,10 @@ export const Dashboard = () => {
   }, [view]);
 
   return (
-    <React.Fragment>
+    <>
       <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-large-top">
-        <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
-          {renderView(view)}
-        </div>
+        <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">{renderView(view)}</div>
       </div>
-    </React.Fragment>
+    </>
   );
 };

@@ -1,20 +1,13 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from "react";
-import Webcam from "react-webcam";
+import React from 'react';
+import Webcam from 'react-webcam';
 
-import { DEFAULT_WEBCAM_CONSTRAINTS } from "../../../../consts/dashboard.consts";
-import {
-  DashboardView,
-  SwitchDashboardView,
-  VideoConstraints,
-} from "../../../../model/dashboard.model";
-import {
-  getUploadedImageURL,
-  storeUploadedImage,
-} from "../../../../service/image.service";
+import { DEFAULT_WEBCAM_CONSTRAINTS } from '../../../../consts/dashboard.consts';
+import { DashboardView, SwitchDashboardView, VideoConstraints } from '../../../../model/dashboard.model';
+import { getUploadedImageURL, storeUploadedImage } from '../../../../service/image.service';
 
-import { Spinner } from "../../../UI/spinner/spinner";
+import { Spinner } from '../../../UI/spinner/spinner';
 
 export interface WebcamProps {
   transition: SwitchDashboardView;
@@ -78,14 +71,14 @@ export const WebcamWindow = ({ transition }: WebcamProps) => {
   }, []);
 
   return (
-    <React.Fragment>
+    <>
       <div>
-        <h4 style={{ textAlign: "center" }}>{"Upload via camera"}</h4>
+        <h4 style={{ textAlign: 'center' }}>{'Upload via camera'}</h4>
         <hr />
 
         {!allowWebcam ? (
           <div>
-            <p style={{ textAlign: "center" }}>
+            <p style={{ textAlign: 'center' }}>
               {`Please allow this website to access the camera in order to view the camera feed.`}
             </p>
             <div className="uk-flex uk-flex-center">
@@ -113,18 +106,12 @@ export const WebcamWindow = ({ transition }: WebcamProps) => {
         {allowWebcam ? (
           <div>
             {!imageTaken ? (
-              <button
-                className="uk-button uk-button-primary uk-width-1-1"
-                onClick={captureImage}
-              >
-                {"Capture"}
+              <button className="uk-button uk-button-primary uk-width-1-1" onClick={captureImage}>
+                {'Capture'}
               </button>
             ) : (
-              <button
-                className="uk-button uk-button-secondary uk-width-1-1"
-                onClick={retakeImage}
-              >
-                {"Retake"}
+              <button className="uk-button uk-button-secondary uk-width-1-1" onClick={retakeImage}>
+                {'Retake'}
               </button>
             )}
           </div>
@@ -132,22 +119,16 @@ export const WebcamWindow = ({ transition }: WebcamProps) => {
 
         {imageTaken ? (
           <div>
-            <button
-              className="uk-button uk-button-primary uk-width-1-1 uk-margin-medium-top"
-              onClick={submitImage}
-            >
-              {"Submit"}
+            <button className="uk-button uk-button-primary uk-width-1-1 uk-margin-medium-top" onClick={submitImage}>
+              {'Submit'}
             </button>
 
-            <button
-              className="uk-button uk-button-default uk-width-1-1 uk-margin-top"
-              onClick={returnToDashboard}
-            >
-              {"Cancel"}
+            <button className="uk-button uk-button-default uk-width-1-1 uk-margin-top" onClick={returnToDashboard}>
+              {'Cancel'}
             </button>
           </div>
         ) : null}
       </div>
-    </React.Fragment>
+    </>
   );
 };

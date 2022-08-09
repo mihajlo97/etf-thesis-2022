@@ -1,9 +1,9 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/anchor-has-content */
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes.consts";
-import { logoutUser } from "../../../service/auth.service";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../../../consts/routes.consts';
+import { logoutUser } from '../../../service/auth.service';
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -22,15 +22,11 @@ export const Header = () => {
     navigate(AppRoutes.logout);
   };
 
-  const applyActiveClass = (route: string) =>
-    window.location.pathname === route ? "header-nav-link-active" : "";
+  const applyActiveClass = (route: string) => (window.location.pathname === route ? 'header-nav-link-active' : '');
 
   return (
-    <React.Fragment>
-      <div
-        data-uk-sticky="media: 960"
-        className="uk-navbar-container uk-sticky header"
-      >
+    <>
+      <div data-uk-sticky="media: 960" className="uk-navbar-container uk-sticky header">
         <div className="uk-container uk-container-expand">
           <nav className="uk-navbar">
             <div className="uk-navbar-left">
@@ -38,21 +34,17 @@ export const Header = () => {
                 <li>
                   <a
                     onClick={() => navigateTo(AppRoutes.dashboard)}
-                    className={`header-nav-link ${applyActiveClass(
-                      AppRoutes.dashboard
-                    )}`}
+                    className={`header-nav-link ${applyActiveClass(AppRoutes.dashboard)}`}
                   >
-                    {"Dashboard"}
+                    {'Dashboard'}
                   </a>
                 </li>
                 <li>
                   <a
                     onClick={() => navigateTo(AppRoutes.reports)}
-                    className={`header-nav-link ${applyActiveClass(
-                      AppRoutes.reports
-                    )}`}
+                    className={`header-nav-link ${applyActiveClass(AppRoutes.reports)}`}
                   >
-                    {"Reports"}
+                    {'Reports'}
                   </a>
                 </li>
               </ul>
@@ -62,11 +54,9 @@ export const Header = () => {
                 <li className={`${applyActiveClass(AppRoutes.logout)}`}>
                   <a
                     onClick={() => performLogout()}
-                    className={`header-nav-link ${applyActiveClass(
-                      AppRoutes.logout
-                    )}`}
+                    className={`header-nav-link ${applyActiveClass(AppRoutes.logout)}`}
                   >
-                    {"Logout"}
+                    {'Logout'}
                   </a>
                 </li>
               </ul>
@@ -74,6 +64,6 @@ export const Header = () => {
           </nav>
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 };

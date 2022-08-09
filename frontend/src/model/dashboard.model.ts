@@ -1,5 +1,5 @@
-import { AspectRatio, ImageScale } from "./image.model";
-import { ImageClassificationModel } from "./tensorflow.model";
+import { AspectRatio, ImageScale } from './image.model';
+import { ImageClassificationModel } from './tensorflow.model';
 
 export interface VideoConstraints {
   width: number;

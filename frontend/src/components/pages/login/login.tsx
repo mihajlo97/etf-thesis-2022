@@ -1,20 +1,20 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes.consts";
-import { loginUserWithCredentials } from "../../../service/auth.service";
-import { Footer } from "../../layout/footer/footer";
-import { Spinner } from "../../UI/spinner/spinner";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppRoutes } from '../../../consts/routes.consts';
+import { loginUserWithCredentials } from '../../../service/auth.service';
+import { Footer } from '../../layout/footer/footer';
+import { Spinner } from '../../UI/spinner/spinner';
 
 export const Login = () => {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   const [emailError, setEmailError] = React.useState(false);
   const [passwordError, setPasswordError] = React.useState(false);
 
-  const [submitErrorMsg, setSubmitErrorMsg] = React.useState("");
+  const [submitErrorMsg, setSubmitErrorMsg] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
 
@@ -28,7 +28,7 @@ export const Login = () => {
     navigate(AppRoutes.dashboard);
   };
 
-  const validateNotEmpty = (arg: string) => arg !== "";
+  const validateNotEmpty = (arg: string) => arg !== '';
 
   const assertValidEmail = (value: string) => {
     const valid = validateNotEmpty(value);
@@ -70,7 +70,7 @@ export const Login = () => {
   };
 
   const onSubmit = () => {
-    console.log("LoginSubmit", { email, password });
+    console.log('LoginSubmit', { email, password });
 
     setSubmitted(true);
 
@@ -79,12 +79,12 @@ export const Login = () => {
     }
 
     setSubmitting(true);
-    setSubmitErrorMsg("");
+    setSubmitErrorMsg('');
 
     loginUserWithCredentials({ email, password })
       .then((successStatus) => {
         setSubmitting(false);
-        setSubmitErrorMsg("");
+        setSubmitErrorMsg('');
 
         navigateToDashboard();
       })
@@ -92,35 +92,29 @@ export const Login = () => {
         setSubmitting(false);
 
         if (errorStatus === 404) {
-          setSubmitErrorMsg(
-            "Login failed, user could not be found, please try again."
-          );
+          setSubmitErrorMsg('Login failed, user could not be found, please try again.');
         } else if (errorStatus === 401) {
-          setSubmitErrorMsg(
-            "Login failed, the used password is incorrect, please try again."
-          );
+          setSubmitErrorMsg('Login failed, the used password is incorrect, please try again.');
         } else {
-          setSubmitErrorMsg(
-            "Login failed, something went wrong while processing your request, please try again."
-          );
+          setSubmitErrorMsg('Login failed, something went wrong while processing your request, please try again.');
         }
       });
   };
 
-  const shouldShowResponseErrorMessage = () => submitErrorMsg !== "";
+  const shouldShowResponseErrorMessage = () => submitErrorMsg !== '';
 
-  const applyErrorStyleOn = (cond: boolean) => (cond ? "uk-form-danger" : "");
+  const applyErrorStyleOn = (cond: boolean) => (cond ? 'uk-form-danger' : '');
 
   return (
-    <React.Fragment>
+    <>
       <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-xlarge-top">
         <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
-          <h3 className="uk-card-title">{"Welcome to Recognize That!"}</h3>
+          <h3 className="uk-card-title">{'Welcome to Recognize That!'}</h3>
 
           <form onSubmit={(ev) => ev.preventDefault()}>
             <fieldset className="uk-fieldset">
               <div className="uk-margin-bottom">
-                <label htmlFor="login_Email-Field">{"Email:"}</label>
+                <label htmlFor="login_Email-Field">{'Email:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(emailError)}`}
@@ -130,15 +124,11 @@ export const Login = () => {
                   onChange={onChangeEmail}
                 ></input>
 
-                {emailError ? (
-                  <small className="uk-text-danger">
-                    {"Please enter your email."}
-                  </small>
-                ) : null}
+                {emailError ? <small className="uk-text-danger">{'Please enter your email.'}</small> : null}
               </div>
 
               <div className="uk-margin-bottom">
-                <label htmlFor="login_Password-Field">{"Password:"}</label>
+                <label htmlFor="login_Password-Field">{'Password:'}</label>
 
                 <input
                   className={`uk-input ${applyErrorStyleOn(passwordError)}`}
@@ -148,27 +138,20 @@ export const Login = () => {
                   onChange={onChangePassword}
                 ></input>
 
-                {passwordError ? (
-                  <small className="uk-text-danger">
-                    {"Please enter your password."}
-                  </small>
-                ) : null}
+                {passwordError ? <small className="uk-text-danger">{'Please enter your password.'}</small> : null}
               </div>
 
               <p className="uk-margin-bottom">
                 {"Don't have an account? "}
-                <a onClick={navigateToRegister}>{"Register new account."}</a>
+                <a onClick={navigateToRegister}>{'Register new account.'}</a>
               </p>
 
               <div className="uk-flex uk-flex-center">
                 {submitting ? (
                   <Spinner />
                 ) : (
-                  <button
-                    className="uk-button uk-button-primary"
-                    onClick={onSubmit}
-                  >
-                    {"Login"}
+                  <button className="uk-button uk-button-primary" onClick={onSubmit}>
+                    {'Login'}
                   </button>
                 )}
               </div>
@@ -185,6 +168,6 @@ export const Login = () => {
       </div>
 
       <Footer />
-    </React.Fragment>
+    </>
   );
 };

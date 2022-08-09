@@ -1,5 +1,5 @@
-import { ModelName } from "./api-request.model";
-import { Resolution } from "./image.model";
+import { ModelName } from './api-request.model';
+import { Resolution } from './image.model';
 
 export interface PredictionResult {
   className: string;
@@ -14,5 +14,5 @@ export interface ImageClassificationModel {
 
 export interface ImageClassificationResults {
   resolution: Resolution;
-  results: PredictionResult[];
+  results: PredictionResult[] | any;
 }

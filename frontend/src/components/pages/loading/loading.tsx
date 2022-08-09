@@ -1,11 +1,10 @@
-import React from "react";
-import { Footer } from "../../layout/footer/footer";
-import { Header } from "../../layout/header/header";
-import { Spinner } from "../../UI/spinner/spinner";
+import { Footer } from '../../layout/footer/footer';
+import { Header } from '../../layout/header/header';
+import { Spinner } from '../../UI/spinner/spinner';
 
 export const Loading = () => {
   return (
-    <React.Fragment>
+    <>
       <Header />
       <div className="uk-flex uk-flex-row uk-flex-center uk-margin-large-top">
         <div className="uk-card uk-width-1-2@m">
@@ -15,6 +14,6 @@ export const Loading = () => {
         </div>
       </div>
       <Footer />
-    </React.Fragment>
+    </>
   );
 };

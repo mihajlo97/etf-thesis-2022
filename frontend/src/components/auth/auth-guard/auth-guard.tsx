@@ -1,6 +1,6 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { AppRoutes } from "../../../consts/routes.consts";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { AppRoutes } from '../../../consts/routes.consts';
 import {
   assertSessionStillValid,
   assertUserLoggedIn,
@@ -8,35 +8,35 @@ import {
   getCheckSessionValidityInterval,
   logoutUser,
   setSessionExpired,
-} from "../../../service/auth.service";
-import { Loading } from "../../pages/loading/loading";
+} from '../../../service/auth.service';
+import { Loading } from '../../pages/loading/loading';
 
-type TargetComponent = "login" | "logout" | "loading" | "component";
+type TargetComponent = 'login' | 'logout' | 'loading' | 'component';
 
 export const AuthGuard = (props: any): JSX.Element => {
-  const [target, setTarget] = React.useState("loading" as TargetComponent);
+  const [target, setTarget] = React.useState('loading' as TargetComponent);
 
   const checkSessionValidity = () => {
     if (!assertUserLoggedIn()) {
-      setTarget("login");
+      setTarget('login');
       return;
     }
 
     if (!assertSessionStillValid()) {
       doSilentRefresh()
         .then(() => {
-          setTarget("component");
+          setTarget('component');
         })
         .catch(() => {
           setSessionExpired();
           logoutUser();
 
-          setTarget("logout");
+          setTarget('logout');
         });
       return;
     }
 
-    setTarget("component");
+    setTarget('component');
   };
 
   React.useEffect(() => {
@@ -54,13 +54,13 @@ export const AuthGuard = (props: any): JSX.Element => {
   }, []);
 
   switch (target) {
-    case "login":
+    case 'login':
       return <Navigate to={AppRoutes.login} />;
 
-    case "logout":
+    case 'logout':
       return <Navigate to={AppRoutes.logout} />;
 
-    case "component":
+    case 'component':
       return props.children;
 
     default:
