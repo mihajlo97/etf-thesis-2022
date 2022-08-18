@@ -57,6 +57,11 @@ export const classifyImageLocally = async (model: ModelName): Promise<ImageClass
     const startMeasuring = Date.now();
 
     const tfjsModel = await loadModel(model);
+
+    const modelLoadingTime = Date.now() - startMeasuring;
+
+    const startMeasuringImagePreparationTime = Date.now();
+
     const imageData = (await getSourceImageData()).imageData;
 
     if (!imageData) {
@@ -64,14 +69,21 @@ export const classifyImageLocally = async (model: ModelName): Promise<ImageClass
     }
 
     const tensor = tf.browser.fromPixels(imageData);
+
+    const imagePreparationTime = Date.now() - startMeasuringImagePreparationTime;
+
+    const startMeasuringPredictionTime = Date.now();
+
     const results = await tfjsModel.classify(tensor);
 
-    const processingTime = Date.now() - startMeasuring;
+    const predictionTime = Date.now() - startMeasuringPredictionTime;
+
+    const totalProcessingTime = Date.now() - startMeasuring;
 
     return {
       resolution: { width: imageData.width, height: imageData.height },
       results,
-      processingTime,
+      processingTime: { imagePreparationTime, predictionTime, totalProcessingTime, modelLoadingTime },
     };
   } catch (err) {
     console.error('ClassifyImageError', { err });
@@ -91,13 +103,14 @@ export const sendImageForClassification = async (model: ModelName): Promise<Imag
     }
 
     const response = await classifyImage({ model, img });
+
     const results = [...response.data.results].slice(0, 3);
-    const processingTime = response.data.processingTime;
+    const { imagePreparationTime, predictionTime, totalProcessingTime } = response.data;
 
     return {
       resolution: { width: imageData.width, height: imageData.height },
       results,
-      processingTime,
+      processingTime: { imagePreparationTime, predictionTime, totalProcessingTime },
     };
   } catch (err) {
     console.error('SendImageForClassificationError', { err });

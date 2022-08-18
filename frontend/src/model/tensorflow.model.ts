@@ -12,8 +12,16 @@ export interface ImageClassificationModel {
   name: ModelName;
 }
 
+export interface ProcessingTime {
+  imagePreparationTime: number;
+  predictionTime: number;
+  totalProcessingTime: number;
+  responseTime?: number;
+  modelLoadingTime?: number;
+}
+
 export interface ImageClassificationResults {
   resolution: Resolution;
   results: PredictionResult[];
-  processingTime: number;
+  processingTime: ProcessingTime;
 }

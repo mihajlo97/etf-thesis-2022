@@ -237,7 +237,7 @@ def classify_image():
     # Headers: { Authorization: Bearer <access_token> }
     # Request: { img, model=['mobilenet', 'mobilenet_v2'] }
     # Response: [
-    #   200 { results=[{ className, probability }], processingTime }
+    #   200 { results=[{ className, probability }], imagePreparationTime, predictionTime, totalProcessingTime }
     #   400 { msg }
     #   401 { msg }
     # ]
@@ -271,6 +271,8 @@ def classify_image():
     imgFile = Image.open(io.BytesIO(decodedImg))
     imgData = prepare_image_data(imgFile)
 
+    imagePreperationTime = get_current_time_milis() - startMeasuring
+
     predictions = []
 
     """
@@ -281,6 +283,8 @@ def classify_image():
     elif (model == 'resnet'):
         predictions = resnetModel.predict(imgData)
     """
+
+    startMeasuringPredictionTime = get_current_time_milis()
 
     if (model == 'mobilenet'):
         predictions = mobilenetModel.predict(imgData)
@@ -293,9 +297,10 @@ def classify_image():
     for result in decodedResults[0]:
         results.append({'className': result[1], 'probability': str(result[2])})
 
-    processingTime = get_current_time_milis() - startMeasuring
+    predictionTime = get_current_time_milis() - startMeasuringPredictionTime
+    totalProcessingTime = get_current_time_milis() - startMeasuring
 
-    return jsonify({'results': results, 'processingTime': processingTime}), 200
+    return jsonify({'results': results, 'imagePreparationTime': imagePreperationTime, 'predictionTime': predictionTime, 'totalProcessingTime': totalProcessingTime}), 200
 
 
 # Startup:

@@ -6,7 +6,7 @@ import React from 'react';
 
 import { DashboardView, ReportArgs, SwitchDashboardView } from '../../../../model/dashboard.model';
 import { Resolution } from '../../../../model/image.model';
-import { PredictionResult } from '../../../../model/tensorflow.model';
+import { PredictionResult, ProcessingTime } from '../../../../model/tensorflow.model';
 import { getSourceImageURL, transformImage } from '../../../../service/image.service';
 import { classifyImageLocally, sendImageForClassification } from '../../../../service/tensorflow.service';
 
@@ -28,8 +28,8 @@ export const Report = ({ transition, args }: ResultsProps) => {
     height: 0,
   } as Resolution);
   const [timestamp, setTimestamp] = React.useState('');
-  const [localProcessingTime, setLocalProcessingTime] = React.useState(0);
-  const [serverProcessingTime, setServerProcessingTime] = React.useState(0);
+  const [localProcessingTime, setLocalProcessingTime] = React.useState({} as ProcessingTime);
+  const [serverProcessingTime, setServerProcessingTime] = React.useState({} as ProcessingTime);
 
   const { imageScale, aspectRatio, model } = args;
 
@@ -60,6 +60,47 @@ export const Report = ({ transition, args }: ResultsProps) => {
     ));
   };
 
+  const getProcessingTime = (processingTime: ProcessingTime) => {
+    if (!shouldDisplayResults()) {
+      return null;
+    }
+
+    const { imagePreparationTime, predictionTime, totalProcessingTime } = processingTime;
+
+    return (
+      <>
+        <li>
+          <span>{`Image preparation time: ${imagePreparationTime} ms`}</span>
+        </li>
+        <li>
+          <span>{`Prediction time: ${predictionTime} ms`}</span>
+        </li>
+        <li>
+          <span>{`Total processing time: ${totalProcessingTime} ms`}</span>
+        </li>
+      </>
+    );
+  };
+
+  const setProcessingTime = (processingTime: ProcessingTime, local: boolean) => {
+    const { imagePreparationTime, predictionTime, totalProcessingTime, modelLoadingTime, responseTime } =
+      processingTime;
+
+    local
+      ? setLocalProcessingTime({
+          imagePreparationTime,
+          predictionTime,
+          totalProcessingTime,
+          modelLoadingTime,
+        })
+      : setServerProcessingTime({
+          imagePreparationTime,
+          predictionTime,
+          totalProcessingTime,
+          responseTime,
+        });
+  };
+
   const returnToSettings = () => transition(DashboardView.SETTINGS);
 
   const returnToDashboard = () => transition(DashboardView.INITIAL);
@@ -69,13 +110,21 @@ export const Report = ({ transition, args }: ResultsProps) => {
   const generateReport = async () => {
     try {
       const resultsLocal = await classifyImageLocally(model.name);
+
+      const startMeasuring = Date.now();
+
       const resultsServer = await sendImageForClassification(model.name);
-      const { width, height } = resultsLocal.resolution;
+
+      resultsServer.processingTime.responseTime = Date.now() - startMeasuring;
 
       setLocalResults([...resultsLocal.results]);
-      setLocalProcessingTime(resultsLocal.processingTime);
       setServerResults([...resultsServer.results]);
-      setServerProcessingTime(resultsServer.processingTime);
+
+      setProcessingTime(resultsLocal.processingTime, true);
+      setProcessingTime(resultsServer.processingTime, false);
+
+      const { width, height } = resultsLocal.resolution;
+
       setResolution({ width, height });
       setState('results');
     } catch (err) {
@@ -159,24 +208,27 @@ export const Report = ({ transition, args }: ResultsProps) => {
               <span>{model.label}</span>
             </div>
 
-            <div className="uk-margin-top">
+            <div className="uk-margin-medium-top">
               <label style={getLabelStyle()}>{'Results (Frontend):'}</label>
               <br />
               <label>{'Image predictions:'}</label>
               <ol>{getResults(localResults)}</ol>
               <label>{'Processing time:'}</label>
-              <br />
-              <span>{`${localProcessingTime} ms`}</span>
+              <ul>
+                <li>{`Model loading time: ${localProcessingTime.modelLoadingTime} ms`}</li>
+                {getProcessingTime(localProcessingTime)}
+              </ul>
             </div>
 
-            <div className="uk-margin-top">
+            <div className="uk-margin-medium-top">
               <label style={getLabelStyle()}>{'Results (Backend):'}</label>
               <br />
               <label>{'Image predictions:'}</label>
               <ol>{getResults(serverResults)}</ol>
               <label>{'Processing time:'}</label>
               <br />
-              <span>{`${serverProcessingTime} ms`}</span>
+              <ul>{getProcessingTime(serverProcessingTime)}</ul>
+              <label>{`Response time: ${serverProcessingTime.responseTime} ms`}</label>
             </div>
 
             <div className="uk-margin-top">

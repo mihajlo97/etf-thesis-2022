@@ -10,6 +10,8 @@ export interface LoginUserResponse {
 
 export interface ClassifyImageResponse {
   msg?: string;
-  results?: any;
-  processingTime?: any;
+  results: any;
+  imagePreparationTime: number;
+  predictionTime: number;
+  totalProcessingTime: number;
 }
