@@ -1,44 +1,62 @@
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { ImageClassificationResults } from '../model/tensorflow.model';
-import { getSourceImageData } from './image.service';
+import { getSourceImageData, resizeImage } from './image.service';
 import { MODELS } from '../consts/tensorflow.consts';
 import { classifyImage } from './api.service';
 import { ModelName } from '../model/api-request.model';
 
-export type ModelType = mobilenet.MobileNet | tf.LayersModel;
+// export type ModelType = mobilenet.MobileNet | tf.LayersModel;
 
 export const getModels = () => MODELS;
 
 export const getModel = (modelId: number) => getModels()[modelId];
 
-export const loadModel = async (model: ModelName): Promise<ModelType> => {
-  switch (model) {
+export const loadModel = async (model: ModelName): Promise<mobilenet.MobileNet> => {
+  /*switch (model) {
     case 'mobilenet':
       return mobilenet.load({ version: 2, alpha: 1 });
 
     case 'resnet':
-      return tf.loadLayersModel('http://localhost:3000/assets/models/resnet/model.json');
+      return tf.loadLayersModel(
+        'https://raw.githubusercontent.com/mihajlo97/etf-thesis-2022/main/frontend/src/assets/models/resnet/model.json'
+      );
 
     case 'vgg':
-      return tf.loadLayersModel('http://localhost:3000/assets/models/vgg/model.json');
+      return tf.loadLayersModel(
+        'https://raw.githubusercontent.com/mihajlo97/etf-thesis-2022/main/frontend/src/assets/models/vgg/model.json'
+      );
+  }*/
+
+  switch (model) {
+    case 'mobilenet':
+      return mobilenet.load({ version: 1, alpha: 1 });
+
+    case 'mobilenet_v2':
+      return mobilenet.load({ version: 2, alpha: 1 });
+
+    default:
+      throw new Error(`LoadModelError: No such model ${model}.`);
   }
 };
 
-export const performClassification = async (model: ModelType, name: ModelName, tensor: tf.Tensor3D) => {
+/*export const performClassification = async (model: ModelType, name: ModelName, image: ImageData) => {
+  const tensor = tf.browser.fromPixels(image);
+
+  console.log('Tensor', tensor);
+
   if (name === 'mobilenet') {
     return (model as mobilenet.MobileNet).classify(tensor);
   }
 
-  return (model as tf.LayersModel).predict(tensor);
-};
+  return (model as tf.LayersModel).predict(tensor.reshape([1, 224, 224, 3]));
+};*/
 
 export const classifyImageLocally = async (model: ModelName): Promise<ImageClassificationResults> => {
   try {
-    //const tfjsModel = await mobilenet.load({ version: 2, alpha: 1 });
+    const startMeasuring = Date.now();
 
     const tfjsModel = await loadModel(model);
-
     const imageData = (await getSourceImageData()).imageData;
 
     if (!imageData) {
@@ -46,17 +64,17 @@ export const classifyImageLocally = async (model: ModelName): Promise<ImageClass
     }
 
     const tensor = tf.browser.fromPixels(imageData);
+    const results = await tfjsModel.classify(tensor);
 
-    //const results = await tfjsModel.classify(tensor);
-
-    const results = performClassification(tfjsModel, model, tensor);
+    const processingTime = Date.now() - startMeasuring;
 
     return {
       resolution: { width: imageData.width, height: imageData.height },
       results,
+      processingTime,
     };
   } catch (err) {
-    console.log('ClassifyImageError', { err });
+    console.error('ClassifyImageError', { err });
 
     throw err;
   }
@@ -74,13 +92,15 @@ export const sendImageForClassification = async (model: ModelName): Promise<Imag
 
     const response = await classifyImage({ model, img });
     const results = [...response.data.results].slice(0, 3);
+    const processingTime = response.data.processingTime;
 
     return {
       resolution: { width: imageData.width, height: imageData.height },
       results,
+      processingTime,
     };
   } catch (err) {
-    console.log('SendImageForClassificationError', { err });
+    console.error('SendImageForClassificationError', { err });
 
     throw err;
   }

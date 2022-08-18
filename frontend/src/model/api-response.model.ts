@@ -11,4 +11,5 @@ export interface LoginUserResponse {
 export interface ClassifyImageResponse {
   msg?: string;
   results?: any;
+  processingTime?: any;
 }

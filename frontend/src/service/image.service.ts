@@ -34,7 +34,7 @@ export const removeUploadedImages = () => {
 
 export const clearResizedImage = () => sessionStorage.removeItem(KEY_RESIZED_IMAGE_URL);
 
-const resizeImage = (resizeWidth: number, resizeHeight: number) => {
+export const resizeImage = (resizeWidth: number, resizeHeight: number) => {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
 
@@ -49,7 +49,7 @@ const resizeImage = (resizeWidth: number, resizeHeight: number) => {
   canvas.toBlob((blob) => storeResizedImage(blob));
 };
 
-const resizeToSquareAspectRatio = (rescaledWidth: number, rescaledHeight: number) => {
+export const resizeToSquareAspectRatio = (rescaledWidth: number, rescaledHeight: number) => {
   const transformedWidth = rescaledWidth >= rescaledHeight ? rescaledWidth : rescaledHeight;
   const transformedHeight = transformedWidth;
 
@@ -96,7 +96,7 @@ export const transformImage = async (imageScale: ImageScale, aspectRatio: Aspect
 
     resizeImage(transformedWidth, transformedHeight);
   } catch (err) {
-    console.log('TransformImageError', { err });
+    throw err;
   }
 };
 
@@ -134,7 +134,7 @@ export const getSourceImageData = async (fetchBase64?: boolean): Promise<SourceI
       imageData,
     };
   } catch (err) {
-    console.log('GetSourceImageDataError', { err });
+    console.error('GetSourceImageDataError', { err });
 
     return new Promise((resolve, reject) => reject());
   }

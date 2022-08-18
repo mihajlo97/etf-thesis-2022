@@ -4,6 +4,7 @@ import uuid
 import logging
 import base64
 import io
+import time
 import numpy as np
 import tensorflowjs as tfjs
 from datetime import datetime, timedelta
@@ -13,7 +14,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity, get_jwt
 from flask_cors import CORS
-from tensorflow.keras.applications import vgg19, resnet50, mobilenet_v2, imagenet_utils
+# from tensorflow.keras.applications import vgg19, resnet50, mobilenet_v2, imagenet_utils
+from tensorflow.keras.applications import mobilenet, mobilenet_v2, imagenet_utils
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 
@@ -37,9 +39,10 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
-vggModel = vgg19.VGG19(weights='imagenet')
-resnetModel = resnet50.ResNet50(weights='imagenet')
-mobilenetModel = mobilenet_v2.MobileNetV2(weights='imagenet')
+# vggModel = vgg19.VGG19(weights='imagenet')
+# resnetModel = resnet50.ResNet50(weights='imagenet')
+mobilenetModel = mobilenet.MobileNet(weights='imagenet')
+mobilenetV2Model = mobilenet_v2.MobileNetV2(weights='imagenet')
 
 
 # Database schema setup:
@@ -66,6 +69,10 @@ def prepare_image_data(img):
     img = image.img_to_array(img)
 
     return np.expand_dims(img, axis=0)
+
+
+def get_current_time_milis():
+    return round(time.time() * 1000)
 
 
 # API:
@@ -228,9 +235,9 @@ def convert_and_export_model():
 def classify_image():
     # Classify the sent image and return the predicted classification results.
     # Headers: { Authorization: Bearer <access_token> }
-    # Request: { img, model=['mobilenet', 'vgg', 'resnet'] }
+    # Request: { img, model=['mobilenet', 'mobilenet_v2'] }
     # Response: [
-    #   200 { results=[{ className, probability }] }
+    #   200 { results=[{ className, probability }], processingTime }
     #   400 { msg }
     #   401 { msg }
     # ]
@@ -247,11 +254,18 @@ def classify_image():
     if ('model' not in data) or (len(model) == 0):
         return jsonify({'msg': 'Missing field model.'}), 400
 
+    """
     if (model != 'mobilenet') and (model != 'vgg') and (model != 'resnet'):
-        return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
+       return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
+    """
+
+    if (model != 'mobilenet') and (model != 'mobilenet_v2'):
+        return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, mobilenet_v2]'}), 400
 
     if ('img' not in data) or (len(img) == 0):
         return jsonify({'msg': 'Missing field img.'}), 400
+
+    startMeasuring = get_current_time_milis()
 
     decodedImg = base64.b64decode(img)
     imgFile = Image.open(io.BytesIO(decodedImg))
@@ -259,12 +273,19 @@ def classify_image():
 
     predictions = []
 
+    """
     if (model == 'mobilenet'):
-        predictions = mobilenetModel.predict(imgData)
+        predictions = mobilenetV2Model.predict(imgData)
     elif (model == 'vgg'):
         predictions = vggModel.predict(imgData)
     elif (model == 'resnet'):
         predictions = resnetModel.predict(imgData)
+    """
+
+    if (model == 'mobilenet'):
+        predictions = mobilenetModel.predict(imgData)
+    elif (model == 'mobilenet_v2'):
+        predictions = mobilenetV2Model.predict(imgData)
 
     decodedResults = imagenet_utils.decode_predictions(predictions)
     results = []
@@ -272,7 +293,9 @@ def classify_image():
     for result in decodedResults[0]:
         results.append({'className': result[1], 'probability': str(result[2])})
 
-    return jsonify({'results': results}), 200
+    processingTime = get_current_time_milis() - startMeasuring
+
+    return jsonify({'results': results, 'processingTime': processingTime}), 200
 
 
 # Startup:

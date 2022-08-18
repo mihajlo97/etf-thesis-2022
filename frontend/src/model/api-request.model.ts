@@ -1,4 +1,6 @@
-export type ModelName = 'mobilenet' | 'vgg' | 'resnet';
+// export type ModelName = 'mobilenet' | 'vgg' | 'resnet';
+
+export type ModelName = 'mobilenet' | 'mobilenet_v2';
 
 export interface RegisterUserRequest {
   firstName: string;

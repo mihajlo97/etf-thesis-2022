@@ -21,11 +21,15 @@ export type ReportState = 'processing' | 'error' | 'results';
 
 export const Report = ({ transition, args }: ResultsProps) => {
   const [state, setState] = React.useState('processing' as ReportState);
-  const [results, setResults] = React.useState([] as PredictionResult[]);
+  const [localResults, setLocalResults] = React.useState([] as PredictionResult[]);
+  const [serverResults, setServerResults] = React.useState([] as PredictionResult[]);
   const [resolution, setResolution] = React.useState({
     width: 0,
     height: 0,
   } as Resolution);
+  const [timestamp, setTimestamp] = React.useState('');
+  const [localProcessingTime, setLocalProcessingTime] = React.useState(0);
+  const [serverProcessingTime, setServerProcessingTime] = React.useState(0);
 
   const { imageScale, aspectRatio, model } = args;
 
@@ -42,16 +46,17 @@ export const Report = ({ transition, args }: ResultsProps) => {
     </>
   );
 
-  const getResults = () => {
+  const getResults = (results: PredictionResult[]) => {
     if (!shouldDisplayResults()) {
       return null;
     }
 
-    return (results as PredictionResult[]).map((result, idx) => (
-      <div key={idx}>
-        <span>{`${result.className} ${result.probability}`}</span>
+    return results.map((result, idx) => (
+      <li key={idx} className="uk-margin-small-bottom">
+        <span>{`Class name: ${result.className}`}</span>
         <br />
-      </div>
+        <span>{`Probability: ${(result.probability * 100).toFixed(4)}%`}</span>
+      </li>
     ));
   };
 
@@ -63,21 +68,28 @@ export const Report = ({ transition, args }: ResultsProps) => {
 
   const generateReport = async () => {
     try {
-      const classificationResults = await classifyImageLocally(model.name);
-      //const classificationResults = await sendImageForClassification(model.name);
-      const { width, height } = classificationResults.resolution;
+      const resultsLocal = await classifyImageLocally(model.name);
+      const resultsServer = await sendImageForClassification(model.name);
+      const { width, height } = resultsLocal.resolution;
 
-      setResults([...classificationResults.results]);
+      setLocalResults([...resultsLocal.results]);
+      setLocalProcessingTime(resultsLocal.processingTime);
+      setServerResults([...resultsServer.results]);
+      setServerProcessingTime(resultsServer.processingTime);
       setResolution({ width, height });
       setState('results');
     } catch (err) {
+      console.error('GenerateReportError', { err });
       setState('error');
     }
   };
 
   React.useEffect(() => {
     if (shouldProcessImage()) {
-      transformImage(imageScale, aspectRatio).then(() => generateReport());
+      transformImage(imageScale, aspectRatio)
+        .then(() => generateReport())
+        .catch((err) => console.error('TransformImageError', { err }))
+        .finally(() => setTimestamp(new Date().toLocaleString()));
     }
   }, [state]);
 
@@ -129,13 +141,11 @@ export const Report = ({ transition, args }: ResultsProps) => {
               <img src={getSourceImageURL()} className="uk-margin-small-top" />
             </div>
 
-            {
-              <div className="uk-margin-medium-top">
-                <label style={getLabelStyle()}>{'Image resolution:'}</label>
-                <br />
-                <span>{`${resolution.width}x${resolution.height}`}</span>
-              </div>
-            }
+            <div className="uk-margin-medium-top">
+              <label style={getLabelStyle()}>{'Image resolution:'}</label>
+              <br />
+              <span>{`${resolution.width}x${resolution.height}`}</span>
+            </div>
 
             <div className="uk-margin-top">
               <label style={getLabelStyle()}>{'Aspect ratio:'}</label>
@@ -150,9 +160,29 @@ export const Report = ({ transition, args }: ResultsProps) => {
             </div>
 
             <div className="uk-margin-top">
-              <label style={getLabelStyle()}>{'Results:'}</label>
+              <label style={getLabelStyle()}>{'Results (Frontend):'}</label>
               <br />
-              {getResults()}
+              <label>{'Image predictions:'}</label>
+              <ol>{getResults(localResults)}</ol>
+              <label>{'Processing time:'}</label>
+              <br />
+              <span>{`${localProcessingTime} ms`}</span>
+            </div>
+
+            <div className="uk-margin-top">
+              <label style={getLabelStyle()}>{'Results (Backend):'}</label>
+              <br />
+              <label>{'Image predictions:'}</label>
+              <ol>{getResults(serverResults)}</ol>
+              <label>{'Processing time:'}</label>
+              <br />
+              <span>{`${serverProcessingTime} ms`}</span>
+            </div>
+
+            <div className="uk-margin-top">
+              <label style={getLabelStyle()}>{'Timestamp:'}</label>
+              <br />
+              <span>{timestamp}</span>
             </div>
 
             <button

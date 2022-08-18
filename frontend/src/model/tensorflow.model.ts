@@ -14,5 +14,6 @@ export interface ImageClassificationModel {
 
 export interface ImageClassificationResults {
   resolution: Resolution;
-  results: PredictionResult[] | any;
+  results: PredictionResult[];
+  processingTime: number;
 }
