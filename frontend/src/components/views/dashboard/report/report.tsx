@@ -33,72 +33,49 @@ export const Report = ({ transition, args }: ResultsProps) => {
 
   const { imageScale, aspectRatio, model } = args;
 
-  const shouldDisplayResults = () => state === 'results';
-
   const shouldProcessImage = () => state === 'processing';
 
-  const getLabelStyle = () => ({ fontWeight: 'bold' });
-
   const getCardHeader = () => (
-    <>
+    <div>
       <h4 style={{ textAlign: 'center' }}>{'Report'}</h4>
       <hr />
-    </>
+    </div>
   );
 
-  const getResults = (results: PredictionResult[]) => {
-    if (!shouldDisplayResults()) {
-      return null;
-    }
+  const getResolutionLabel = (resolution: Resolution) => `${resolution.width}x${resolution.height}`;
 
-    return results.map((result, idx) => (
-      <li key={idx} className="uk-margin-small-bottom">
-        <span>{`Class name: ${result.className}`}</span>
-        <br />
-        <span>{`Probability: ${(result.probability * 100).toFixed(4)}%`}</span>
-      </li>
-    ));
-  };
+  const getBestPredictionClass = (results: PredictionResult[]) => results[0].className.replaceAll('_', ' ');
 
-  const getProcessingTime = (processingTime: ProcessingTime) => {
-    if (!shouldDisplayResults()) {
-      return null;
-    }
+  const getBestConfidence = (results: PredictionResult[]) => `${(results[0].probability * 100).toFixed(2)}%`;
 
-    const { imagePreparationTime, predictionTime, totalProcessingTime } = processingTime;
+  const getTimeLabel = (t: number | undefined) => `${t} ms`;
+
+  const getConfidenceDifference = () => {
+    const localConfidence = localResults[0].probability;
+    const serverConfidence = serverResults[0].probability;
+
+    const isMoreConfident = localConfidence >= serverConfidence;
+    const difference = isMoreConfident ? localConfidence / serverConfidence : serverConfidence / localConfidence;
 
     return (
-      <>
-        <li>
-          <span>{`Image preparation time: ${imagePreparationTime} ms`}</span>
-        </li>
-        <li>
-          <span>{`Prediction time: ${predictionTime} ms`}</span>
-        </li>
-        <li>
-          <span>{`Total processing time: ${totalProcessingTime} ms`}</span>
-        </li>
-      </>
+      <p style={{ color: isMoreConfident ? 'green' : 'red' }}>{`x${difference.toFixed(2)} ${
+        isMoreConfident ? 'more' : 'less'
+      } confident`}</p>
     );
   };
 
-  const setProcessingTime = (processingTime: ProcessingTime, local: boolean) => {
-    const { imagePreparationTime, predictionTime, totalProcessingTime, modelLoadingTime, responseTime } =
-      processingTime;
+  const getTimeDifference = (localTime: number | undefined, serverTime: number | undefined) => {
+    const local = localTime ?? 1;
+    const server = serverTime ?? 1;
 
-    local
-      ? setLocalProcessingTime({
-          imagePreparationTime,
-          predictionTime,
-          totalProcessingTime,
-          modelLoadingTime,
-        })
-      : setServerProcessingTime({
-          imagePreparationTime,
-          predictionTime,
-          totalProcessingTime,
-          responseTime,
-        });
+    const isFaster = local <= server;
+    const difference = isFaster ? server / local : local / server;
+
+    return (
+      <p style={{ color: isFaster ? 'green' : 'red' }}>{`x${difference.toFixed(2)} ${
+        isFaster ? 'faster' : 'slower'
+      }`}</p>
+    );
   };
 
   const returnToSettings = () => transition(DashboardView.SETTINGS);
@@ -120,8 +97,8 @@ export const Report = ({ transition, args }: ResultsProps) => {
       setLocalResults([...resultsLocal.results]);
       setServerResults([...resultsServer.results]);
 
-      setProcessingTime(resultsLocal.processingTime, true);
-      setProcessingTime(resultsServer.processingTime, false);
+      setLocalProcessingTime(resultsLocal.processingTime);
+      setServerProcessingTime(resultsServer.processingTime);
 
       const { width, height } = resultsLocal.resolution;
 
@@ -185,62 +162,128 @@ export const Report = ({ transition, args }: ResultsProps) => {
             {getCardHeader()}
 
             <div>
-              <label style={getLabelStyle()}>{'Source image:'}</label>
-              <br />
+              <h4>{'Source image:'}</h4>
               <img src={getSourceImageURL()} className="uk-margin-small-top" />
             </div>
 
             <div className="uk-margin-medium-top">
-              <label style={getLabelStyle()}>{'Image resolution:'}</label>
-              <br />
-              <span>{`${resolution.width}x${resolution.height}`}</span>
-            </div>
-
-            <div className="uk-margin-top">
-              <label style={getLabelStyle()}>{'Aspect ratio:'}</label>
-              <br />
-              <span>{aspectRatio.label}</span>
-            </div>
-
-            <div className="uk-margin-top">
-              <label style={getLabelStyle()}>{'Model applied:'}</label>
-              <br />
-              <span>{model.label}</span>
+              <div className="uk-overflow-auto">
+                <h4>{'Report details:'}</h4>
+                <table className="uk-table uk-table-divider">
+                  <tbody>
+                    <tr>
+                      <td>{'Resolution'}</td>
+                      <td>{getResolutionLabel(resolution)}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>{'Aspect ratio'}</td>
+                      <td>{aspectRatio.label}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>{'Model'}</td>
+                      <td>{model.label}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>{'Timestamp'}</td>
+                      <td>{timestamp}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div className="uk-margin-medium-top">
-              <label style={getLabelStyle()}>{'Results (Frontend):'}</label>
-              <br />
-              <label>{'Image predictions:'}</label>
-              <ol>{getResults(localResults)}</ol>
-              <label>{'Processing time:'}</label>
-              <ul>
-                <li>{`Model loading time: ${localProcessingTime.modelLoadingTime} ms`}</li>
-                {getProcessingTime(localProcessingTime)}
-              </ul>
-            </div>
-
-            <div className="uk-margin-medium-top">
-              <label style={getLabelStyle()}>{'Results (Backend):'}</label>
-              <br />
-              <label>{'Image predictions:'}</label>
-              <ol>{getResults(serverResults)}</ol>
-              <label>{'Processing time:'}</label>
-              <br />
-              <ul>{getProcessingTime(serverProcessingTime)}</ul>
-              <label>{`Response time: ${serverProcessingTime.responseTime} ms`}</label>
-            </div>
-
-            <div className="uk-margin-top">
-              <label style={getLabelStyle()}>{'Timestamp:'}</label>
-              <br />
-              <span>{timestamp}</span>
+              <div className="uk-overflow-auto">
+                <h4>{'Results:'}</h4>
+                <table className="uk-table uk-table-divider">
+                  <thead>
+                    <tr>
+                      <th>{'Item'}</th>
+                      <th>{'Client'}</th>
+                      <th>{'Server'}</th>
+                      <th>{'Difference'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-uk-tooltip="Prediction class name with highest confidence.">
+                        {'Best prediction class'}
+                      </td>
+                      <td>{getBestPredictionClass(localResults)}</td>
+                      <td>{getBestPredictionClass(serverResults)}</td>
+                      <td>{'/'}</td>
+                    </tr>
+                    <tr>
+                      <td>{'Confidence'}</td>
+                      <td>{getBestConfidence(localResults)}</td>
+                      <td>{getBestConfidence(serverResults)}</td>
+                      <td>{getConfidenceDifference()}</td>
+                    </tr>
+                    <tr>
+                      <td data-uk-tooltip="Time required to prepare the image before using it as algorithm input (rescaling, grayscaling, converting to tensor etc.).">
+                        {'Image preparation time'}
+                      </td>
+                      <td>{getTimeLabel(localProcessingTime.imagePreparationTime)}</td>
+                      <td>{getTimeLabel(serverProcessingTime.imagePreparationTime)}</td>
+                      <td>
+                        {getTimeDifference(
+                          localProcessingTime.imagePreparationTime,
+                          serverProcessingTime.imagePreparationTime
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td data-uk-tooltip="Time required for the algorithm to process the input tensor and output a predicted class result.">
+                        {'Prediction time'}
+                      </td>
+                      <td>{getTimeLabel(localProcessingTime.predictionTime)}</td>
+                      <td>{getTimeLabel(serverProcessingTime.predictionTime)}</td>
+                      <td>
+                        {getTimeDifference(localProcessingTime.predictionTime, serverProcessingTime.predictionTime)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td data-uk-tooltip="Time required to go from an image input to a predicted class result output.">
+                        {'Processing time'}
+                      </td>
+                      <td>{getTimeLabel(localProcessingTime.totalProcessingTime)}</td>
+                      <td>{getTimeLabel(serverProcessingTime.totalProcessingTime)}</td>
+                      <td>
+                        {getTimeDifference(
+                          localProcessingTime.totalProcessingTime,
+                          serverProcessingTime.totalProcessingTime
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td data-uk-tooltip="Time required to complete the entire image prediction request.">
+                        {'Response time'}
+                      </td>
+                      <td>{getTimeLabel(localProcessingTime.responseTime)}</td>
+                      <td>{getTimeLabel(serverProcessingTime.responseTime)}</td>
+                      <td>{getTimeDifference(localProcessingTime.responseTime, serverProcessingTime.responseTime)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <small>
+                <span style={{ color: 'red' }}>Red</span> indicates poorer client results, while{' '}
+                <span style={{ color: 'green' }}>green</span> indicates better client results.
+              </small>
             </div>
 
             <button
-              className="uk-button uk-button-primary uk-width-1-1 uk-margin-medium-top"
+              className="uk-button uk-button-primary uk-width-1-1 uk-margin-xlarge-top"
               onClick={returnToSettings}
             >
+              {'Save report'}
+            </button>
+
+            <button className="uk-button uk-button-secondary uk-width-1-1 uk-margin-top" onClick={returnToSettings}>
               {'Change settings'}
             </button>
 

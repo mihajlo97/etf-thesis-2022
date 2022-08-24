@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import { ImageClassificationResults } from '../model/tensorflow.model';
-import { getSourceImageData, resizeImage } from './image.service';
+import { getSourceImageData } from './image.service';
 import { MODELS } from '../consts/tensorflow.consts';
 import { classifyImage } from './api.service';
 import { ModelName } from '../model/api-request.model';
@@ -54,13 +54,9 @@ export const loadModel = async (model: ModelName): Promise<mobilenet.MobileNet> 
 
 export const classifyImageLocally = async (model: ModelName): Promise<ImageClassificationResults> => {
   try {
-    const startMeasuring = Date.now();
-
     const tfjsModel = await loadModel(model);
 
-    const modelLoadingTime = Date.now() - startMeasuring;
-
-    const startMeasuringImagePreparationTime = Date.now();
+    const startMeasuring = Date.now();
 
     const imageData = (await getSourceImageData()).imageData;
 
@@ -70,7 +66,7 @@ export const classifyImageLocally = async (model: ModelName): Promise<ImageClass
 
     const tensor = tf.browser.fromPixels(imageData);
 
-    const imagePreparationTime = Date.now() - startMeasuringImagePreparationTime;
+    const imagePreparationTime = Date.now() - startMeasuring;
 
     const startMeasuringPredictionTime = Date.now();
 
@@ -80,10 +76,12 @@ export const classifyImageLocally = async (model: ModelName): Promise<ImageClass
 
     const totalProcessingTime = Date.now() - startMeasuring;
 
+    const responseTime = totalProcessingTime;
+
     return {
       resolution: { width: imageData.width, height: imageData.height },
       results,
-      processingTime: { imagePreparationTime, predictionTime, totalProcessingTime, modelLoadingTime },
+      processingTime: { imagePreparationTime, predictionTime, totalProcessingTime, responseTime },
     };
   } catch (err) {
     console.error('ClassifyImageError', { err });

@@ -17,7 +17,6 @@ export interface ProcessingTime {
   predictionTime: number;
   totalProcessingTime: number;
   responseTime?: number;
-  modelLoadingTime?: number;
 }
 
 export interface ImageClassificationResults {

@@ -61,14 +61,18 @@ class Users(db.Model):
 
 # Helper functions:
 
-def prepare_image_data(img):
+def prepare_image_data(img, model):
     if img.mode != "RGB":
         img = img.convert("RGB")
 
     img = img.resize((224, 224))
     img = image.img_to_array(img)
+    img_tensor = np.expand_dims(img, axis=0)
 
-    return np.expand_dims(img, axis=0)
+    if (model == 'mobilenet'):
+        return mobilenet.preprocess_input(img_tensor)
+
+    return mobilenet_v2.preprocess_input(img_tensor)
 
 
 def get_current_time_milis():
@@ -269,7 +273,7 @@ def classify_image():
 
     decodedImg = base64.b64decode(img)
     imgFile = Image.open(io.BytesIO(decodedImg))
-    imgData = prepare_image_data(imgFile)
+    imgData = prepare_image_data(imgFile, model)
 
     imagePreperationTime = get_current_time_milis() - startMeasuring
 
