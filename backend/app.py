@@ -14,7 +14,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity, get_jwt
 from flask_cors import CORS
-# from tensorflow.keras.applications import vgg19, resnet50, mobilenet_v2, imagenet_utils
 from tensorflow.keras.applications import mobilenet, mobilenet_v2, imagenet_utils
 from tensorflow.keras.preprocessing import image
 from PIL import Image
@@ -39,8 +38,6 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
-# vggModel = vgg19.VGG19(weights='imagenet')
-# resnetModel = resnet50.ResNet50(weights='imagenet')
 mobilenetModel = mobilenet.MobileNet(weights='imagenet')
 mobilenetV2Model = mobilenet_v2.MobileNetV2(weights='imagenet')
 
@@ -57,6 +54,31 @@ class Users(db.Model):
 
     def __repr__(self):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
+
+
+class Reports(db.Model):
+    report_id = db.Column(db.Integer, primary_key=True)
+    public_id = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(255), nullable=False)
+    image_path = db.Column(db.String(512), nullable=False)
+    resolution = db.Column(db.String(50), nullable=False)
+    aspect_ratio = db.Column(db.String(50), nullable=False)
+    model = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.String(50), nullable=False)
+    client_class = db.Column(db.String(255), nullable=False)
+    client_confidence = db.Column(db.Integer, nullable=False)
+    client_time_image = db.Column(db.Integer, nullable=False)
+    client_time_prediction = db.Column(db.Integer, nullable=False)
+    client_time_processing = db.Column(db.Integer, nullable=False)
+    server_class = db.Column(db.String(255), nullable=False)
+    server_confidence = db.Column(db.Integer, nullable=False)
+    server_time_image = db.Column(db.Integer, nullable=False)
+    server_time_prediction = db.Column(db.Integer, nullable=False)
+    server_time_processing = db.Column(db.Integer, nullable=False)
+    server_time_response = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<Report [{self.timestamp}] {self.name}>'
 
 
 # Helper functions:
@@ -200,40 +222,6 @@ def refresh():
     return jsonify({'accessToken': accessToken, 'refreshToken': refreshToken}), 200
 
 
-"""
-@app.route('/model/convert', methods=['POST'])
-def convert_and_export_model():
-    # Export the chosen model to a Tensorflow.js Layers format. This allows the frontend to load the model.
-    # Request: { model=['vgg', 'resnet'] }
-    # Response: [
-    #   200 {},
-    #   400 { msg }
-    # ]
-
-    data = request.get_json()
-    model = request.json.get('model', '')
-
-    if ('model' not in data) or (len(model) == 0):
-        return jsonify({'msg': 'Missing field model.'}), 400
-
-    if (model != 'vgg') and (model != 'resnet'):
-        return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
-
-    if (model == 'vgg'):
-        vggModel.compile(loss='mean_squared_error',
-                         optimizer='adam',
-                         metrics=['accuracy'])
-        tfjs.converters.save_keras_model(vggModel, 'models')
-    elif (model == 'resnet'):
-        resnetModel.compile(loss='mean_squared_error',
-                            optimizer='adam',
-                            metrics=['accuracy'])
-        tfjs.converters.save_keras_model(resnetModel, 'models')
-
-    return jsonify({}), 200
-"""
-
-
 @app.route('/model/classify', methods=['POST'])
 @jwt_required()
 def classify_image():
@@ -258,11 +246,6 @@ def classify_image():
     if ('model' not in data) or (len(model) == 0):
         return jsonify({'msg': 'Missing field model.'}), 400
 
-    """
-    if (model != 'mobilenet') and (model != 'vgg') and (model != 'resnet'):
-       return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, vgg, resnet]'}), 400
-    """
-
     if (model != 'mobilenet') and (model != 'mobilenet_v2'):
         return jsonify({'msg': 'Invalid model to use specified. Allowed values: [mobilenet, mobilenet_v2]'}), 400
 
@@ -278,15 +261,6 @@ def classify_image():
     imagePreperationTime = get_current_time_milis() - startMeasuring
 
     predictions = []
-
-    """
-    if (model == 'mobilenet'):
-        predictions = mobilenetV2Model.predict(imgData)
-    elif (model == 'vgg'):
-        predictions = vggModel.predict(imgData)
-    elif (model == 'resnet'):
-        predictions = resnetModel.predict(imgData)
-    """
 
     startMeasuringPredictionTime = get_current_time_milis()
 
