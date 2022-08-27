@@ -15,3 +15,5 @@ export interface ClassifyImageResponse {
   predictionTime: number;
   totalProcessingTime: number;
 }
+
+export interface StoreReportResponse {}

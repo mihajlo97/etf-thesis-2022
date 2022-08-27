@@ -18,3 +18,5 @@ export interface ClassifyImageRequest {
   model: ModelName;
   img: string;
 }
+
+export interface StoreReportRequest {}

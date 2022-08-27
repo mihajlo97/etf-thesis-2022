@@ -7,6 +7,7 @@ import React from 'react';
 import { DashboardView, ReportArgs, SwitchDashboardView } from '../../../../model/dashboard.model';
 import { Resolution } from '../../../../model/image.model';
 import { PredictionResult, ProcessingTime } from '../../../../model/tensorflow.model';
+import { storeReport } from '../../../../service/api.service';
 import { getSourceImageURL, transformImage } from '../../../../service/image.service';
 import { classifyImageLocally, sendImageForClassification } from '../../../../service/tensorflow.service';
 
@@ -19,6 +20,8 @@ export interface ResultsProps {
 
 export type ReportState = 'processing' | 'error' | 'results';
 
+export type SavingState = 'standby' | 'saving' | 'saved' | 'retry';
+
 export const Report = ({ transition, args }: ResultsProps) => {
   const [state, setState] = React.useState('processing' as ReportState);
   const [localResults, setLocalResults] = React.useState([] as PredictionResult[]);
@@ -30,10 +33,15 @@ export const Report = ({ transition, args }: ResultsProps) => {
   const [timestamp, setTimestamp] = React.useState('');
   const [localProcessingTime, setLocalProcessingTime] = React.useState({} as ProcessingTime);
   const [serverProcessingTime, setServerProcessingTime] = React.useState({} as ProcessingTime);
+  const [reportName, setReportName] = React.useState('');
+  const [saveButtonState, setSaveButtonState] = React.useState('standby' as SavingState);
+  const [emptyNameError, setEmptyNameError] = React.useState(false);
 
   const { imageScale, aspectRatio, model } = args;
 
   const shouldProcessImage = () => state === 'processing';
+
+  const shouldStoreReport = () => saveButtonState === 'saving';
 
   const getCardHeader = () => (
     <div>
@@ -78,6 +86,12 @@ export const Report = ({ transition, args }: ResultsProps) => {
     );
   };
 
+  const onReportNameChange = (ev: any) => {
+    const value = ev.target.value;
+    setReportName(value);
+    setEmptyNameError(value === '');
+  };
+
   const returnToSettings = () => transition(DashboardView.SETTINGS);
 
   const returnToDashboard = () => transition(DashboardView.INITIAL);
@@ -110,6 +124,47 @@ export const Report = ({ transition, args }: ResultsProps) => {
     }
   };
 
+  const saveReport = () => {
+    if (reportName === '') {
+      setEmptyNameError(true);
+      return;
+    }
+
+    setSaveButtonState('saving');
+  };
+
+  const renderSaveButton = () => {
+    switch (saveButtonState) {
+      case 'saving':
+        return (
+          <div className="uk-flex uk-flex-center ">
+            <Spinner />
+          </div>
+        );
+
+      case 'saved':
+        return (
+          <button className="uk-button uk-button-primary uk-width-1-1 " disabled>
+            {'Saved'}
+          </button>
+        );
+
+      case 'retry':
+        return (
+          <button className="uk-button uk-button-danger uk-width-1-1 " onClick={saveReport}>
+            {'Retry saving'}
+          </button>
+        );
+
+      default:
+        return (
+          <button className="uk-button uk-button-primary uk-width-1-1 " onClick={saveReport}>
+            {'Save report'}
+          </button>
+        );
+    }
+  };
+
   React.useEffect(() => {
     if (shouldProcessImage()) {
       transformImage(imageScale, aspectRatio)
@@ -118,6 +173,18 @@ export const Report = ({ transition, args }: ResultsProps) => {
         .finally(() => setTimestamp(new Date().toLocaleString()));
     }
   }, [state]);
+
+  React.useEffect(() => {
+    if (shouldStoreReport()) {
+      storeReport({})
+        .then((res) => {
+          setSaveButtonState('saved');
+        })
+        .catch((err) => {
+          setSaveButtonState('retry');
+        });
+    }
+  }, [saveButtonState]);
 
   switch (state) {
     case 'processing':
@@ -166,7 +233,9 @@ export const Report = ({ transition, args }: ResultsProps) => {
               <img src={getSourceImageURL()} className="uk-margin-small-top" />
             </div>
 
-            <div className="uk-margin-medium-top">
+            <hr />
+
+            <div className="uk-margin-top">
               <div className="uk-overflow-auto">
                 <h4>{'Report details:'}</h4>
                 <table className="uk-table uk-table-divider">
@@ -196,7 +265,9 @@ export const Report = ({ transition, args }: ResultsProps) => {
               </div>
             </div>
 
-            <div className="uk-margin-medium-top">
+            <hr />
+
+            <div className="uk-margin-top">
               <div className="uk-overflow-auto">
                 <h4>{'Results:'}</h4>
                 <table className="uk-table uk-table-divider">
@@ -276,12 +347,22 @@ export const Report = ({ transition, args }: ResultsProps) => {
               </small>
             </div>
 
-            <button
-              className="uk-button uk-button-primary uk-width-1-1 uk-margin-xlarge-top"
-              onClick={returnToSettings}
-            >
-              {'Save report'}
-            </button>
+            <hr />
+
+            <div className="uk-margin-large-bottom">
+              <h4>Save report</h4>
+              <label>Report name:</label>
+              <input
+                className={`uk-input uk-margin-small-top ${emptyNameError ? 'uk-form-danger' : ''}`}
+                type="text"
+                placeholder="Enter report name"
+                onChange={onReportNameChange}
+                disabled={saveButtonState === 'saved'}
+              ></input>
+              {emptyNameError ? <small className="uk-text-danger">Please enter report name first.</small> : null}
+            </div>
+
+            {renderSaveButton()}
 
             <button className="uk-button uk-button-secondary uk-width-1-1 uk-margin-top" onClick={returnToSettings}>
               {'Change settings'}

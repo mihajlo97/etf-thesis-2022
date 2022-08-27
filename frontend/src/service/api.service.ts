@@ -5,9 +5,20 @@ import {
   API_ROOT,
   API_USER_REFRESH,
   API_MODEL_CLASSIFY,
+  API_REPORTS_STORE,
 } from '../consts/api.consts';
-import { ClassifyImageRequest, LoginUserRequest, RegisterUserRequest } from '../model/api-request.model';
-import { ClassifyImageResponse, LoginUserResponse, RegisterUserResponse } from '../model/api-response.model';
+import {
+  ClassifyImageRequest,
+  LoginUserRequest,
+  RegisterUserRequest,
+  StoreReportRequest,
+} from '../model/api-request.model';
+import {
+  ClassifyImageResponse,
+  LoginUserResponse,
+  RegisterUserResponse,
+  StoreReportResponse,
+} from '../model/api-response.model';
 import { assertTokenStillValid, doSilentRefresh, getAccessToken } from './auth.service';
 
 const getAuthenticatedConfig = async (jwt: string | null): Promise<AxiosRequestConfig> => {
@@ -55,6 +66,20 @@ export const classifyImage = async (req: ClassifyImageRequest): Promise<AxiosRes
 
   return axios.post(
     `${API_ROOT}${API_MODEL_CLASSIFY}`,
+    {
+      ...req,
+    },
+    {
+      ...headers,
+    }
+  );
+};
+
+export const storeReport = async (req: StoreReportRequest): Promise<AxiosResponse<StoreReportResponse>> => {
+  const headers = await getAuthenticatedConfig(getAccessToken());
+
+  return axios.post(
+    `${API_ROOT}${API_REPORTS_STORE}`,
     {
       ...req,
     },

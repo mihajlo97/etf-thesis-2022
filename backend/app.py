@@ -25,6 +25,7 @@ app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_uri = f'{basedir}\db\database.db'
+static_uri = f'{basedir}\static'
 
 app.config['SECRET_KEY'] = 'ETF_THESIS_2022_SECRET'
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_uri}"
@@ -279,6 +280,12 @@ def classify_image():
     totalProcessingTime = get_current_time_milis() - startMeasuring
 
     return jsonify({'results': results, 'imagePreparationTime': imagePreperationTime, 'predictionTime': predictionTime, 'totalProcessingTime': totalProcessingTime}), 200
+
+
+@app.route('/reports/store', methods=['POST'])
+@jwt_required()
+def save_report():
+    return jsonify({}), 200
 
 
 # Startup:
