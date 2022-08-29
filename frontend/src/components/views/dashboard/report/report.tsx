@@ -4,7 +4,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 
-import { DashboardView, ReportArgs, SwitchDashboardView } from '../../../../model/dashboard.model';
+import { DashboardView, ReportArgs, ReportData, SwitchDashboardView } from '../../../../model/dashboard.model';
 import { Resolution } from '../../../../model/image.model';
 import { PredictionResult, ProcessingTime } from '../../../../model/tensorflow.model';
 import { storeReport } from '../../../../service/api.service';
@@ -30,7 +30,7 @@ export const Report = ({ transition, args }: ResultsProps) => {
     width: 0,
     height: 0,
   } as Resolution);
-  const [timestamp, setTimestamp] = React.useState('');
+  const [timestamp, setTimestamp] = React.useState(0);
   const [localProcessingTime, setLocalProcessingTime] = React.useState({} as ProcessingTime);
   const [serverProcessingTime, setServerProcessingTime] = React.useState({} as ProcessingTime);
   const [reportName, setReportName] = React.useState('');
@@ -84,6 +84,49 @@ export const Report = ({ transition, args }: ResultsProps) => {
         isFaster ? 'faster' : 'slower'
       }`}</p>
     );
+  };
+
+  const getReportData = (): ReportData => {
+    // const data = new FormData();
+
+    const payload = {
+      name: reportName,
+      resolution: getResolutionLabel(resolution),
+      aspectRatio: aspectRatio.label,
+      model: model.label,
+      timestamp: `${timestamp}`,
+      clientClass: getBestPredictionClass(localResults),
+      clientConfidence: getBestConfidence(localResults).slice(0, -1),
+      clientTimeImage: `${localProcessingTime.imagePreparationTime}`,
+      clientTimePrediction: `${localProcessingTime.predictionTime}`,
+      clientTimeProcessing: `${localProcessingTime.totalProcessingTime}`,
+      serverClass: getBestPredictionClass(serverResults),
+      serverConfidence: getBestConfidence(serverResults).slice(0, -1),
+      serverTimeImage: `${serverProcessingTime.imagePreparationTime}`,
+      serverTimePrediction: `${serverProcessingTime.predictionTime}`,
+      serverTimeProcessing: `${serverProcessingTime.totalProcessingTime}`,
+      serverTimeResponse: `${serverProcessingTime.responseTime}`,
+    } as ReportData;
+
+    /*data.append('name', reportName);
+    data.append('resolution', getResolutionLabel(resolution));
+    data.append('aspectRatio', aspectRatio.label);
+    data.append('model', model.label);
+    data.append('timestamp', timestamp);
+    data.append('clientClass', getBestPredictionClass(localResults));
+    data.append('clientConfidence', getBestConfidence(localResults));
+    data.append('clientTimeImage', `${localProcessingTime.imagePreparationTime}`);
+    data.append('clientTimePrediction', `${localProcessingTime.predictionTime}`);
+    data.append('clientTimeProcessing', `${localProcessingTime.totalProcessingTime}`);
+    data.append('serverClass', getBestPredictionClass(serverResults));
+    data.append('serverConfidence', getBestConfidence(serverResults));
+    data.append('serverTimeImage', `${serverProcessingTime.imagePreparationTime}`);
+    data.append('serverTimePrediction', `${serverProcessingTime.predictionTime}`);
+    data.append('serverTimeProcessing', `${serverProcessingTime.totalProcessingTime}`);
+    data.append('serverTimeResponse', `${serverProcessingTime.responseTime}`);
+    data.append('image', new Blob([getSourceImageURL()], { type: 'image/jpg' }));*/
+
+    return payload;
   };
 
   const onReportNameChange = (ev: any) => {
@@ -170,13 +213,13 @@ export const Report = ({ transition, args }: ResultsProps) => {
       transformImage(imageScale, aspectRatio)
         .then(() => generateReport())
         .catch((err) => console.error('TransformImageError', { err }))
-        .finally(() => setTimestamp(new Date().toLocaleString()));
+        .finally(() => setTimestamp(new Date().getTime()));
     }
   }, [state]);
 
   React.useEffect(() => {
     if (shouldStoreReport()) {
-      storeReport({})
+      storeReport(getReportData())
         .then((res) => {
           setSaveButtonState('saved');
         })
@@ -257,7 +300,7 @@ export const Report = ({ transition, args }: ResultsProps) => {
                     </tr>
                     <tr>
                       <td>{'Timestamp'}</td>
-                      <td>{timestamp}</td>
+                      <td>{new Date(timestamp).toLocaleString()}</td>
                       <td></td>
                     </tr>
                   </tbody>

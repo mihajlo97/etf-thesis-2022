@@ -285,6 +285,12 @@ def classify_image():
 @app.route('/reports/store', methods=['POST'])
 @jwt_required()
 def save_report():
+    # app.logger.info(request.form.to_dict())
+    
+    img = request.files.get('image')
+    # app.logger.info(img)
+
+
     return jsonify({}), 200
 
 

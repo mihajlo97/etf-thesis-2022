@@ -7,21 +7,18 @@ import {
   API_MODEL_CLASSIFY,
   API_REPORTS_STORE,
 } from '../consts/api.consts';
-import {
-  ClassifyImageRequest,
-  LoginUserRequest,
-  RegisterUserRequest,
-  StoreReportRequest,
-} from '../model/api-request.model';
+import { ClassifyImageRequest, LoginUserRequest, RegisterUserRequest } from '../model/api-request.model';
 import {
   ClassifyImageResponse,
   LoginUserResponse,
   RegisterUserResponse,
   StoreReportResponse,
 } from '../model/api-response.model';
+import { ReportData } from '../model/dashboard.model';
 import { assertTokenStillValid, doSilentRefresh, getAccessToken } from './auth.service';
+import { getSourceImageURL } from './image.service';
 
-const getAuthenticatedConfig = async (jwt: string | null): Promise<AxiosRequestConfig> => {
+const getAuthenticatedConfig = async (jwt: string | null, useFormHeader?: boolean): Promise<AxiosRequestConfig> => {
   const valid = assertTokenStillValid(jwt);
 
   if (!valid) {
@@ -30,6 +27,17 @@ const getAuthenticatedConfig = async (jwt: string | null): Promise<AxiosRequestC
     } catch (err: any) {
       return new Promise((resolve, reject) => reject('Authentication failed, logging out user.'));
     }
+  }
+
+  if (useFormHeader) {
+    return new Promise((resolve, reject) =>
+      resolve({
+        headers: {
+          Authorization: `Bearer ${valid ? jwt : getAccessToken()}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    );
   }
 
   return new Promise((resolve, reject) =>
@@ -75,16 +83,29 @@ export const classifyImage = async (req: ClassifyImageRequest): Promise<AxiosRes
   );
 };
 
-export const storeReport = async (req: StoreReportRequest): Promise<AxiosResponse<StoreReportResponse>> => {
-  const headers = await getAuthenticatedConfig(getAccessToken());
+export const storeReport = async (payload: ReportData): Promise<AxiosResponse<StoreReportResponse>> => {
+  const headers = await getAuthenticatedConfig(getAccessToken(), true);
+  const data = new FormData();
 
-  return axios.post(
-    `${API_ROOT}${API_REPORTS_STORE}`,
-    {
-      ...req,
-    },
-    {
-      ...headers,
-    }
-  );
+  data.append('name', payload.name);
+  data.append('resolution', payload.resolution);
+  data.append('aspectRatio', payload.aspectRatio);
+  data.append('model', payload.model);
+  data.append('timestamp', payload.timestamp);
+  data.append('clientClass', payload.clientClass);
+  data.append('clientConfidence', payload.clientConfidence);
+  data.append('clientTimeImage', payload.clientTimeImage);
+  data.append('clientTimePrediction', payload.clientTimePrediction);
+  data.append('clientTimeProcessing', payload.clientTimeProcessing);
+  data.append('serverClass', payload.serverClass);
+  data.append('serverConfidence', payload.serverConfidence);
+  data.append('serverTimeImage', payload.serverTimeImage);
+  data.append('serverTimePrediction', payload.serverTimePrediction);
+  data.append('serverTimeProcessing', payload.serverTimeProcessing);
+  data.append('serverTimeResponse', payload.serverTimeResponse);
+  data.append('image', new Blob([getSourceImageURL()], { type: 'image/jpg' }), `${payload.name}.jpg`);
+
+  return axios.post(`${API_ROOT}${API_REPORTS_STORE}`, data, {
+    ...headers,
+  });
 };
