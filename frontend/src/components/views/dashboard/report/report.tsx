@@ -86,10 +86,8 @@ export const Report = ({ transition, args }: ResultsProps) => {
     );
   };
 
-  const getReportData = (): ReportData => {
-    // const data = new FormData();
-
-    const payload = {
+  const getReportData = (): ReportData =>
+    ({
       name: reportName,
       resolution: getResolutionLabel(resolution),
       aspectRatio: aspectRatio.label,
@@ -106,28 +104,7 @@ export const Report = ({ transition, args }: ResultsProps) => {
       serverTimePrediction: `${serverProcessingTime.predictionTime}`,
       serverTimeProcessing: `${serverProcessingTime.totalProcessingTime}`,
       serverTimeResponse: `${serverProcessingTime.responseTime}`,
-    } as ReportData;
-
-    /*data.append('name', reportName);
-    data.append('resolution', getResolutionLabel(resolution));
-    data.append('aspectRatio', aspectRatio.label);
-    data.append('model', model.label);
-    data.append('timestamp', timestamp);
-    data.append('clientClass', getBestPredictionClass(localResults));
-    data.append('clientConfidence', getBestConfidence(localResults));
-    data.append('clientTimeImage', `${localProcessingTime.imagePreparationTime}`);
-    data.append('clientTimePrediction', `${localProcessingTime.predictionTime}`);
-    data.append('clientTimeProcessing', `${localProcessingTime.totalProcessingTime}`);
-    data.append('serverClass', getBestPredictionClass(serverResults));
-    data.append('serverConfidence', getBestConfidence(serverResults));
-    data.append('serverTimeImage', `${serverProcessingTime.imagePreparationTime}`);
-    data.append('serverTimePrediction', `${serverProcessingTime.predictionTime}`);
-    data.append('serverTimeProcessing', `${serverProcessingTime.totalProcessingTime}`);
-    data.append('serverTimeResponse', `${serverProcessingTime.responseTime}`);
-    data.append('image', new Blob([getSourceImageURL()], { type: 'image/jpg' }));*/
-
-    return payload;
-  };
+    } as ReportData);
 
   const onReportNameChange = (ev: any) => {
     const value = ev.target.value;

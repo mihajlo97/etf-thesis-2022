@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt_identity, get_jwt
 from flask_cors import CORS
@@ -34,6 +35,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'ETF_THESIS_JWT_2022_SECRET'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=24)
+
+app.config['UPLOAD_FOLDER'] = static_uri
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -100,6 +103,9 @@ def prepare_image_data(img, model):
 
 def get_current_time_milis():
     return round(time.time() * 1000)
+
+def correct_extension(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'jpeg', 'png'}
 
 
 # API:
@@ -285,13 +291,47 @@ def classify_image():
 @app.route('/reports/store', methods=['POST'])
 @jwt_required()
 def save_report():
-    # app.logger.info(request.form.to_dict())
-    
+    # Store the user's report into the database. Images are saved on disk, while the image path is stored in the database.
+    # Headers: { Authorization: Bearer <access_token>, Content-Type: multipart/form-data }
+    # Request: { name, resolution, aspectRatio, model, timestamp, clientClass, clientConfidence, clientTimeImage, clientTimePrediction,
+    #            clientTimeProcessing, serverClass, serverConfidence, serverTimeImage, serverTimePrediction, serverTimeProcessing, serverTimeResponse, image }
+    # Response: [
+    #   200 { msg }
+    #   400 { msg }
+    #   401 { msg }
+    # ]
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    form = request.form.to_dict()
+
+    if ('name' not in form) or ('resolution' not in form) or ('aspectRatio' not in form) or ('model' not in form) or ('timestamp' not in form) or \
+        ('clientClass' not in form) or ('clientConfidence' not in form) or ('clientTimeImage' not in form) or ('clientTimePrediction' not in form) or \
+        ('clientTimeProcessing' not in form) or ('serverClass' not in form) or ('serverConfidence' not in form) or ('serverTimeImage' not in form) or \
+        ('serverTimePrediction' not in form) or ('serverTimeProcessing' not in form) or ('serverTimeResponse' not in form):
+        return jsonify({'msg': 'Missing field in request.'}), 400
+
+    if (len(form['name']) == 0) or (len(form['resolution']) == 0) or (len(form['aspectRatio']) == 0) or (len(form['model']) == 0) or (len(form['timestamp']) == 0) or \
+        (len(form['clientClass']) == 0) or (len(form['clientConfidence']) == 0) or (len(form['clientTimeImage']) == 0) or (len(form['clientTimePrediction']) == 0) or \
+        (len(form['clientTimeProcessing']) == 0) or (len(form['serverClass']) == 0) or (len(form['serverConfidence']) == 0) or (len(form['serverTimeImage']) == 0) or \
+        (len(form['serverTimePrediction']) == 0) or (len(form['serverTimeProcessing']) == 0) or (len(form['serverTimeResponse']) == 0):
+        return jsonify({'msg': 'No empty fields allowed in request.'}), 400
+
     img = request.files.get('image')
-    # app.logger.info(img)
+    filename = img.filename
 
+    if (filename == ''):
+        return jsonify({'msg': 'Image name is empty.'}), 400
 
-    return jsonify({}), 200
+    if (not correct_extension(filename)):
+        return jsonify({'msg': 'Image extension not allowed. Allowed extensions: [jpg, jpeg, png].'}), 400
+
+    filename = secure_filename(filename)
+    img.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))    
+
+    return jsonify({'msg': 'Report saved successfully.'}), 200
 
 
 # Startup:

@@ -85,6 +85,10 @@ export const classifyImage = async (req: ClassifyImageRequest): Promise<AxiosRes
 
 export const storeReport = async (payload: ReportData): Promise<AxiosResponse<StoreReportResponse>> => {
   const headers = await getAuthenticatedConfig(getAccessToken(), true);
+
+  const imageFile = await fetch(getSourceImageURL());
+  const image = await imageFile.blob();
+
   const data = new FormData();
 
   data.append('name', payload.name);
@@ -103,7 +107,7 @@ export const storeReport = async (payload: ReportData): Promise<AxiosResponse<St
   data.append('serverTimePrediction', payload.serverTimePrediction);
   data.append('serverTimeProcessing', payload.serverTimeProcessing);
   data.append('serverTimeResponse', payload.serverTimeResponse);
-  data.append('image', new Blob([getSourceImageURL()], { type: 'image/jpg' }), `${payload.name}.jpg`);
+  data.append('image', image, `${payload.name.replaceAll(' ', '_')}.jpeg`);
 
   return axios.post(`${API_ROOT}${API_REPORTS_STORE}`, data, {
     ...headers,
