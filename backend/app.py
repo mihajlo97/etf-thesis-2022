@@ -55,6 +55,7 @@ class Users(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
+    reports = db.relationship('Reports', backref='users', lazy=True)
 
     def __repr__(self):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
@@ -70,19 +71,24 @@ class Reports(db.Model):
     model = db.Column(db.String(50), nullable=False)
     timestamp = db.Column(db.String(50), nullable=False)
     client_class = db.Column(db.String(255), nullable=False)
-    client_confidence = db.Column(db.Integer, nullable=False)
+    client_confidence = db.Column(db.Float, nullable=False)
     client_time_image = db.Column(db.Integer, nullable=False)
     client_time_prediction = db.Column(db.Integer, nullable=False)
     client_time_processing = db.Column(db.Integer, nullable=False)
     server_class = db.Column(db.String(255), nullable=False)
-    server_confidence = db.Column(db.Integer, nullable=False)
+    server_confidence = db.Column(db.Float, nullable=False)
     server_time_image = db.Column(db.Integer, nullable=False)
     server_time_prediction = db.Column(db.Integer, nullable=False)
     server_time_processing = db.Column(db.Integer, nullable=False)
     server_time_response = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
 
     def __repr__(self):
         return f'<Report [{self.timestamp}] {self.name}>'
+        
+
+db.create_all()
+db.session.commit()
 
 
 # Helper functions:
@@ -320,6 +326,10 @@ def save_report():
         return jsonify({'msg': 'No empty fields allowed in request.'}), 400
 
     img = request.files.get('image')
+
+    if (not img):
+        return jsonify({'msg': 'Image field is missing.'}), 400
+
     filename = img.filename
 
     if (filename == ''):
@@ -328,8 +338,39 @@ def save_report():
     if (not correct_extension(filename)):
         return jsonify({'msg': 'Image extension not allowed. Allowed extensions: [jpg, jpeg, png].'}), 400
 
+    user = Users.query.filter(Users.public_id == identity).first()
+    if not user:
+        return jsonify({'msg': 'Unknown user in token.'}), 401  
+
     filename = secure_filename(filename)
-    img.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))    
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    img.save(img_path)
+
+    report = Reports(
+        public_id=str(uuid.uuid4()),
+        name=form['name'],
+        image_path=img_path,
+        resolution=form['resolution'],
+        aspect_ratio=form['aspectRatio'],
+        model=form['model'],
+        timestamp=int(form['timestamp']),
+        client_class=form['clientClass'],
+        client_confidence=float(form['clientConfidence']),
+        client_time_image=int(form['clientTimeImage']),
+        client_time_prediction=int(form['clientTimePrediction']),
+        client_time_processing=int(form['clientTimeProcessing']),
+        server_class=form['serverClass'],
+        server_confidence=float(form['serverConfidence']),
+        server_time_image=int(form['serverTimeImage']),
+        server_time_prediction=int(form['serverTimePrediction']),
+        server_time_processing=int(form['serverTimeProcessing']),
+        server_time_response=int(form['serverTimeResponse']),
+    )
+    user.reports.append(report)
+
+    db.session.add(report)
+    db.session.add(user)
+    db.session.commit()
 
     return jsonify({'msg': 'Report saved successfully.'}), 200
 
