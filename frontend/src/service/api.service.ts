@@ -6,15 +6,17 @@ import {
   API_USER_REFRESH,
   API_MODEL_CLASSIFY,
   API_REPORTS_STORE,
+  API_REPORTS_USER,
 } from '../consts/api.consts';
 import { ClassifyImageRequest, LoginUserRequest, RegisterUserRequest } from '../model/api-request.model';
 import {
   ClassifyImageResponse,
+  GetReportsResponse,
   LoginUserResponse,
   RegisterUserResponse,
   StoreReportResponse,
 } from '../model/api-response.model';
-import { ReportData } from '../model/dashboard.model';
+import { ReportData } from '../model/report.model';
 import { assertTokenStillValid, doSilentRefresh, getAccessToken } from './auth.service';
 import { getSourceImageURL } from './image.service';
 
@@ -112,4 +114,10 @@ export const storeReport = async (payload: ReportData): Promise<AxiosResponse<St
   return axios.post(`${API_ROOT}${API_REPORTS_STORE}`, data, {
     ...headers,
   });
+};
+
+export const getReports = async (): Promise<AxiosResponse<GetReportsResponse>> => {
+  const headers = await getAuthenticatedConfig(getAccessToken());
+
+  return axios.get(`${API_ROOT}${API_REPORTS_USER}`, { ...headers });
 };

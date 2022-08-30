@@ -4,8 +4,9 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 
-import { DashboardView, ReportArgs, ReportData, SwitchDashboardView } from '../../../../model/dashboard.model';
+import { DashboardView, ReportArgs, SwitchDashboardView } from '../../../../model/dashboard.model';
 import { Resolution } from '../../../../model/image.model';
+import { ReportData } from '../../../../model/report.model';
 import { PredictionResult, ProcessingTime } from '../../../../model/tensorflow.model';
 import { storeReport } from '../../../../service/api.service';
 import { getSourceImageURL, transformImage } from '../../../../service/image.service';
@@ -202,6 +203,7 @@ export const Report = ({ transition, args }: ResultsProps) => {
         })
         .catch((err) => {
           setSaveButtonState('retry');
+          console.error('StoreReportError', { err });
         });
     }
   }, [saveButtonState]);

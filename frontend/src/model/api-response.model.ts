@@ -1,3 +1,5 @@
+import { ReportOverview } from './report.model';
+
 export interface RegisterUserResponse {
   msg?: string;
 }
@@ -17,3 +19,7 @@ export interface ClassifyImageResponse {
 }
 
 export interface StoreReportResponse {}
+
+export interface GetReportsResponse {
+  reports: ReportOverview[];
+}

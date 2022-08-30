@@ -55,7 +55,7 @@ class Users(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
-    reports = db.relationship('Reports', backref='users', lazy=True)
+    reports = db.relationship('Reports', backref='users', lazy=True, cascade="all, delete, delete-orphan" )
 
     def __repr__(self):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
@@ -85,7 +85,7 @@ class Reports(db.Model):
 
     def __repr__(self):
         return f'<Report [{self.timestamp}] {self.name}>'
-        
+
 
 db.create_all()
 db.session.commit()
@@ -306,6 +306,7 @@ def save_report():
     #   400 { msg }
     #   401 { msg }
     # ]
+
     identity = get_jwt_identity()
 
     if not identity:
@@ -339,11 +340,14 @@ def save_report():
         return jsonify({'msg': 'Image extension not allowed. Allowed extensions: [jpg, jpeg, png].'}), 400
 
     user = Users.query.filter(Users.public_id == identity).first()
+
     if not user:
         return jsonify({'msg': 'Unknown user in token.'}), 401  
 
     filename = secure_filename(filename)
-    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    timestamp = form['timestamp']
+
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{timestamp}_{filename}')
     img.save(img_path)
 
     report = Reports(
@@ -373,6 +377,81 @@ def save_report():
     db.session.commit()
 
     return jsonify({'msg': 'Report saved successfully.'}), 200
+
+
+@app.route('/reports/user', methods=['GET'])
+@jwt_required()
+def get_user_reports():
+    # Fetch all reports for the given user from the database.
+    # Headers: { Authorization: Bearer <access_token> }
+    # Response: [
+    #   200 { reports }
+    #   401 { msg }
+    # ]
+
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    user = Users.query.filter(Users.public_id == identity).first()
+
+    if not user:
+        return jsonify({'msg': 'Unknown user in token.'}), 401
+
+    reports = []
+
+    for report in user.reports:
+        reports.append({ 
+            'reportId': report.public_id, 
+            'name': report.name,
+            'timestamp': report.timestamp,
+            'clientClass': report.client_class,
+            'clientConfidence': report.client_confidence,
+            'serverClass': report.server_class,
+            'serverConfidence': report.server_confidence,
+        })
+
+    return jsonify({ 'reports': reports }), 200
+
+
+@app.route('/reports/delete', methods=['POST'])
+@jwt_required()
+def delete_report():
+    # Delete the specified report from the database.
+    # Headers: { Authorization: Bearer <access_token> }
+    # Request: { reportId }
+    # Response: [
+    #   200 { msg }
+    #   400 { msg }
+    #   401 { msg }
+    # ]
+
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    user = Users.query.filter(Users.public_id == identity).first()
+
+    if not user:
+        return jsonify({'msg': 'Unknown user in token.'}), 401
+
+    data = request.get_json()
+    report_id = request.json.get('reportId', '')
+
+    if ('reportId' not in data) or (len(report_id) == 0):
+        return jsonify({'msg': 'Missing field reportId.'}), 400
+
+    report = Reports.query.filter(Reports.public_id == report_id).first()
+
+    if not report:
+        return jsonify({'msg': 'ReportID not found.'}), 400
+
+    db.session.delete(report)
+    db.session.commit()
+
+    return jsonify({ 'msg': 'Report deleted successfully.' }), 200
 
 
 # Startup:
