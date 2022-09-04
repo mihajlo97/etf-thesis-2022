@@ -1,44 +1,72 @@
+/* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable jsx-a11y/anchor-has-content */
 import React from 'react';
-import { GetReportsResponse } from '../../../model/api-response.model';
+import { GetReportResponse, GetReportsResponse } from '../../../model/api-response.model';
 import { ReportOverview } from '../../../model/report.model';
-import { getReports } from '../../../service/api.service';
+import { deleteReport, getReport, getReports } from '../../../service/api.service';
 import { Spinner } from '../../UI/spinner/spinner';
+import { ReportDetails } from '../../views/reports/report-details';
 
 export type ReportTableState = 'fetching' | 'success' | 'error';
 
 export const Reports = () => {
   const [tableState, setTableState] = React.useState('fetching' as ReportTableState);
   const [reports, setReports] = React.useState([] as ReportOverview[]);
-  const [selectedReport, setSelectedReport] = React.useState(0);
+  const [viewReport, setViewReport] = React.useState({} as GetReportResponse | undefined);
+  const [btnSpinnerStates, setBtnSpinnerStates] = React.useState([] as boolean[]);
 
-  const deleteReportBtnId = 'delete-report-btn';
+  const whenReportsSuccessfullyFetched = () => tableState === 'success';
 
   const shouldFetchReports = () => tableState === 'fetching';
 
-  const shouldAttachListener = () => tableState === 'success';
+  const shouldShowBtnSpinner = (idx: number) => btnSpinnerStates[idx];
+
+  const shouldShowNoReportsMsg = () => whenReportsSuccessfullyFetched() && reports.length === 0;
 
   const getTimestampLabel = (timestamp: string) => `${new Date(parseInt(timestamp)).toLocaleString()}`;
 
-  const getResultLabel = (className: string, confidence: number) => `${className} (${confidence.toFixed(2)})%`;
+  const getResultLabel = (className: string, confidence: number) => `${className} (${confidence.toFixed(2)}%)`;
 
-  const getSelectedReportName = () => reports[selectedReport].name;
+  const removeReport = (reportIdx: number) => {
+    const updatedReports = [] as ReportOverview[];
 
-  const handleViewDetails = (idx: number) => {};
+    reports.forEach((report, idx) => {
+      if (idx !== reportIdx) {
+        updatedReports.push(report);
+      }
+    });
 
-  const handleDelete = (idx: number) => {
-    setSelectedReport(idx);
+    setReports([...updatedReports]);
+    setBtnSpinnerStates(updatedReports.map((report) => false));
   };
 
-  const deleteReport = () => {
-    console.log('DELETE');
-    setReports([...reports.splice(selectedReport, 1)]);
+  const handleViewDetails = (idx: number) => {
+    getReport(reports[idx].reportId)
+      .then((res) => {
+        setViewReport(res.data);
+      })
+      .catch((err) => {
+        setViewReport({} as GetReportResponse);
+        console.error('GetReportError', { err });
+      });
   };
 
-  const deleteReportHandler = (event: any) => {
-    deleteReport();
+  const handleDelete = (reportIdx: number) => {
+    setBtnSpinnerStates(btnSpinnerStates.map((btnState, idx) => reportIdx === idx));
+
+    const reportId = reports[reportIdx].reportId;
+
+    deleteReport({ reportId })
+      .then((res) => {
+        removeReport(reportIdx);
+      })
+      .catch((err) => {
+        setBtnSpinnerStates(btnSpinnerStates.map((btnState) => false));
+        console.error('DeleteReportError', { err });
+        alert('An error has occurred while trying to process the delete request, please try again.');
+      });
   };
 
   React.useEffect(() => {
@@ -49,6 +77,7 @@ export const Reports = () => {
 
           setReports([...data.reports]);
           setTableState('success');
+          setBtnSpinnerStates(data.reports.map((report) => false));
         })
         .catch((err) => {
           setTableState('error');
@@ -57,24 +86,12 @@ export const Reports = () => {
     }
   }, []);
 
-  React.useEffect(() => {
-    if (!shouldAttachListener()) {
-      return;
-    }
-
-    const deleteBtn = document.getElementById(deleteReportBtnId);
-
-    deleteBtn?.addEventListener('click', deleteReportHandler);
-
-    return () => deleteBtn?.removeEventListener('click', deleteReportHandler);
-  }, [tableState]);
-
   switch (tableState) {
     case 'success':
       return (
         <>
           <div className="uk-overflow-auto">
-            <table className="uk-table uk-table-divider uk-table-middle">
+            <table className="uk-table uk-table-divider uk-table-middle uk-table-responsive">
               <thead>
                 <tr>
                   <th>{'Timestamp'}</th>
@@ -86,7 +103,7 @@ export const Reports = () => {
               </thead>
               <tbody>
                 {reports.map((report, idx) => (
-                  <tr key={idx}>
+                  <tr key={idx} className="table-row">
                     <td>{getTimestampLabel(report.timestamp)}</td>
                     <td>{report.name}</td>
                     <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
@@ -94,15 +111,25 @@ export const Reports = () => {
                     <td>
                       <button
                         className="uk-button uk-button-primary uk-width-1-1 uk-button-small"
+                        type="button"
+                        data-uk-toggle="target: #modal-report"
                         onClick={() => handleViewDetails(idx)}
                       >
                         {'View details'}
                       </button>
 
+                      <div
+                        className={`uk-flex uk-flex-center uk-margin-small-top ${
+                          shouldShowBtnSpinner(idx) ? '' : 'hide'
+                        }`}
+                      >
+                        <Spinner />
+                      </div>
                       <button
-                        className="uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top"
+                        className={`uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top ${
+                          shouldShowBtnSpinner(idx) ? 'hide' : ''
+                        }`}
                         type="button"
-                        data-uk-toggle="target: #delete-modal"
                         onClick={() => handleDelete(idx)}
                       >
                         {'Delete'}
@@ -110,30 +137,34 @@ export const Reports = () => {
                     </td>
                   </tr>
                 ))}
+                {shouldShowNoReportsMsg() && (
+                  <tr>
+                    <td colSpan={5}>
+                      <p style={{ textAlign: 'center' }}>{'There are no reports to show for this user.'}</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
-          </div>
 
-          <div id="delete-modal" data-uk-modal>
-            <div className="uk-modal-dialog uk-modal-body">
-              <button className="uk-modal-close-default" type="button" data-uk-close></button>
-              <h2 className="uk-modal-title uk-text-center">Delete report</h2>
-              <p className="uk-text-center">{`Are you sure you want to delete report "${getSelectedReportName()}"?`}</p>
-              <p className="uk-text-center">
-                <button
-                  className="uk-button uk-button-danger uk-width-1-1 uk-modal-close"
-                  type="button"
-                  id={deleteReportBtnId}
-                >
-                  {'Delete'}
-                </button>
-                <button
-                  className="uk-button uk-button-default uk-width-1-1 uk-margin-small-top uk-modal-close"
-                  type="button"
-                >
-                  {'Cancel'}
-                </button>
-              </p>
+            <div id="modal-report" data-uk-modal>
+              <div className="uk-modal-dialog">
+                <button className="uk-modal-close-default" type="button" data-uk-close></button>
+
+                <div className="uk-modal-header">
+                  <h2 className="uk-modal-title">{'Report details'}</h2>
+                </div>
+
+                <div className="uk-modal-body" data-uk-overflow-auto>
+                  <ReportDetails report={viewReport} />
+                </div>
+
+                <div className="uk-modal-footer uk-text-right">
+                  <button className="uk-button uk-button-default uk-modal-close" type="button">
+                    {'Close'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </>
@@ -149,7 +180,7 @@ export const Reports = () => {
 
     case 'fetching':
       return (
-        <div className="uk-flex uk-flex-center uk-margin-top">
+        <div className="uk-flex uk-flex-center uk-margin-xlarge-top">
           <Spinner />
         </div>
       );

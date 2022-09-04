@@ -7,10 +7,19 @@ import {
   API_MODEL_CLASSIFY,
   API_REPORTS_STORE,
   API_REPORTS_USER,
+  API_REPORTS_DELETE,
+  API_REPORTS,
 } from '../consts/api.consts';
-import { ClassifyImageRequest, LoginUserRequest, RegisterUserRequest } from '../model/api-request.model';
+import {
+  ClassifyImageRequest,
+  DeleteReportRequest,
+  LoginUserRequest,
+  RegisterUserRequest,
+} from '../model/api-request.model';
 import {
   ClassifyImageResponse,
+  DeleteReportResponse,
+  GetReportResponse,
   GetReportsResponse,
   LoginUserResponse,
   RegisterUserResponse,
@@ -120,4 +129,24 @@ export const getReports = async (): Promise<AxiosResponse<GetReportsResponse>> =
   const headers = await getAuthenticatedConfig(getAccessToken());
 
   return axios.get(`${API_ROOT}${API_REPORTS_USER}`, { ...headers });
+};
+
+export const getReport = async (reportId: string): Promise<AxiosResponse<GetReportResponse>> => {
+  const headers = await getAuthenticatedConfig(getAccessToken());
+
+  return axios.get(`${API_ROOT}${API_REPORTS}${reportId}`, { ...headers });
+};
+
+export const deleteReport = async (req: DeleteReportRequest): Promise<AxiosResponse<DeleteReportResponse>> => {
+  const headers = await getAuthenticatedConfig(getAccessToken());
+
+  return axios.post(
+    `${API_ROOT}${API_REPORTS_DELETE}`,
+    {
+      ...req,
+    },
+    {
+      ...headers,
+    }
+  );
 };

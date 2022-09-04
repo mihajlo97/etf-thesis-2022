@@ -18,3 +18,7 @@ export interface ClassifyImageRequest {
   model: ModelName;
   img: string;
 }
+
+export interface DeleteReportRequest {
+  reportId: string;
+}

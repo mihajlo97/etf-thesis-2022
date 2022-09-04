@@ -10,6 +10,7 @@ import tensorflowjs as tfjs
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from functools import wraps
+from base64 import encodebytes
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
@@ -110,8 +111,21 @@ def prepare_image_data(img, model):
 def get_current_time_milis():
     return round(time.time() * 1000)
 
-def correct_extension(filename):
+def is_correct_extension(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'jpg', 'jpeg', 'png'}
+
+def get_user(identity):
+    return Users.query.filter(Users.public_id == identity).first()
+
+def get_report(report_id):
+    return Reports.query.filter(Reports.public_id == report_id).first()
+
+def get_image_bytes(image_path):
+    pil_image = Image.open(image_path, mode='r')
+    byte_array = io.BytesIO()
+    pil_image.save(byte_array, format='PNG')
+    image_bytes = encodebytes(byte_array.getvalue()).decode('ascii')
+    return image_bytes
 
 
 # API:
@@ -224,7 +238,7 @@ def refresh():
     if now >= exp:
         return jsonify({'msg': 'Session expired.'}), 401
 
-    user = Users.query.filter(Users.public_id == identity).first()
+    user = get_user(identity)
 
     if not user:
         return jsonify({'msg': 'Unauthorized user refresh request.'}), 401
@@ -296,7 +310,7 @@ def classify_image():
 
 @app.route('/reports/store', methods=['POST'])
 @jwt_required()
-def save_report():
+def store_report():
     # Store the user's report into the database. Images are saved on disk, while the image path is stored in the database.
     # Headers: { Authorization: Bearer <access_token>, Content-Type: multipart/form-data }
     # Request: { name, resolution, aspectRatio, model, timestamp, clientClass, clientConfidence, clientTimeImage, clientTimePrediction,
@@ -336,10 +350,10 @@ def save_report():
     if (filename == ''):
         return jsonify({'msg': 'Image name is empty.'}), 400
 
-    if (not correct_extension(filename)):
+    if (not is_correct_extension(filename)):
         return jsonify({'msg': 'Image extension not allowed. Allowed extensions: [jpg, jpeg, png].'}), 400
 
-    user = Users.query.filter(Users.public_id == identity).first()
+    user = get_user(identity)
 
     if not user:
         return jsonify({'msg': 'Unknown user in token.'}), 401  
@@ -394,7 +408,7 @@ def get_user_reports():
     if not identity:
         return jsonify({'msg': 'Missing Authorization Header.'}), 401
 
-    user = Users.query.filter(Users.public_id == identity).first()
+    user = get_user(identity)
 
     if not user:
         return jsonify({'msg': 'Unknown user in token.'}), 401
@@ -425,6 +439,7 @@ def delete_report():
     #   200 { msg }
     #   400 { msg }
     #   401 { msg }
+    #   404 { msg }
     # ]
 
     identity = get_jwt_identity()
@@ -432,7 +447,7 @@ def delete_report():
     if not identity:
         return jsonify({'msg': 'Missing Authorization Header.'}), 401
 
-    user = Users.query.filter(Users.public_id == identity).first()
+    user = get_user(identity)
 
     if not user:
         return jsonify({'msg': 'Unknown user in token.'}), 401
@@ -443,15 +458,70 @@ def delete_report():
     if ('reportId' not in data) or (len(report_id) == 0):
         return jsonify({'msg': 'Missing field reportId.'}), 400
 
-    report = Reports.query.filter(Reports.public_id == report_id).first()
+    report = get_report(report_id)
 
     if not report:
-        return jsonify({'msg': 'ReportID not found.'}), 400
+        return jsonify({'msg': 'ReportId not found.'}), 404
 
     db.session.delete(report)
     db.session.commit()
 
+    os.remove(report.image_path)
+
     return jsonify({ 'msg': 'Report deleted successfully.' }), 200
+
+
+@app.route('/reports/<report_id>', methods=['GET'])
+@jwt_required()
+def get_report_data(report_id):
+    # Fetch report data tied to the passed report ID from the database.
+    # Headers: { Authorization: Bearer <access_token> }
+    # Request: { name, resolution, aspectRatio, model, timestamp,
+    #            clientClass, clientConfidence, clientTimeImage, clientTimePrediction,
+    #            clientTimeProcessing, serverClass, serverConfidence, serverTimeImage,
+    #            serverTimePrediction, serverTimeProcessing, serverTimeResponse, image }
+    # Response: [
+    #   200 { msg }
+    #   401 { msg }
+    #   404 { msg }
+    # ]
+
+    identity = get_jwt_identity()
+
+    if not identity:
+        return jsonify({'msg': 'Missing Authorization Header.'}), 401
+
+    user = get_user(identity)
+
+    if not user:
+        return jsonify({'msg': 'Unknown user in token.'}), 401
+
+    report = get_report(report_id)
+
+    if not report:
+        return jsonify({'msg': 'Report not found.'}), 404
+
+    img_bytes = get_image_bytes(report.image_path)
+
+    return jsonify({
+        'name': report.name,
+        'resolution': report.resolution,
+        'aspectRatio': report.aspect_ratio,
+        'model': report.model,
+        'timestamp': report.timestamp,
+        'clientClass': report.client_class,
+        'clientConfidence': report.client_confidence,
+        'clientTimeImage': report.client_time_image,
+        'clientTimePrediction': report.client_time_prediction,
+        'clientTimeProcessing': report.client_time_processing,
+        'serverClass': report.server_class,
+        'serverConfidence': report.server_confidence,
+        'serverTimeImage': report.server_time_image,
+        'serverTimePrediction': report.server_time_prediction,
+        'serverTimeProcessing': report.server_time_processing,
+        'serverTimeResponse': report.server_time_response,
+        'image': img_bytes
+    }), 200
 
 
 # Startup:

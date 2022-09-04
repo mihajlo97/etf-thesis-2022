@@ -37,3 +37,12 @@ $headerHoverLinkColor: #98d6fd;
 .footer {
     background-color: $bgColorSecondary;
 }
+
+.table-row:hover {
+    background-color: $bgColorSecondary;
+}
+
+// Helpers
+.hide {
+    display: none;
+}
