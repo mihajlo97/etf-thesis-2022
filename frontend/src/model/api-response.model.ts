@@ -33,7 +33,7 @@ export interface GetReportResponse {
   resolution: string;
   aspectRatio: string;
   model: string;
-  timestamp: number;
+  timestamp: string;
   clientClass: string;
   clientConfidence: number;
   clientTimeImage: number;

@@ -38,11 +38,17 @@ $headerHoverLinkColor: #98d6fd;
     background-color: $bgColorSecondary;
 }
 
-.table-row:hover {
-    background-color: $bgColorSecondary;
-}
-
 // Helpers
 .hide {
     display: none;
+}
+
+.modal-dims {
+    @media screen and (min-width: 768px) {
+        width: 80%;
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 90%;
+    }
 }

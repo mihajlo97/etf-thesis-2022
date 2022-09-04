@@ -7,14 +7,15 @@ import { GetReportResponse, GetReportsResponse } from '../../../model/api-respon
 import { ReportOverview } from '../../../model/report.model';
 import { deleteReport, getReport, getReports } from '../../../service/api.service';
 import { Spinner } from '../../UI/spinner/spinner';
-import { ReportDetails } from '../../views/reports/report-details';
+import { ReportDetails, ReportDetailsState } from '../../views/reports/report-details/report-details';
 
 export type ReportTableState = 'fetching' | 'success' | 'error';
 
 export const Reports = () => {
   const [tableState, setTableState] = React.useState('fetching' as ReportTableState);
   const [reports, setReports] = React.useState([] as ReportOverview[]);
-  const [viewReport, setViewReport] = React.useState({} as GetReportResponse | undefined);
+  const [viewReport, setViewReport] = React.useState({} as GetReportResponse);
+  const [modalDisplay, setModalDisplay] = React.useState('loading' as ReportDetailsState);
   const [btnSpinnerStates, setBtnSpinnerStates] = React.useState([] as boolean[]);
 
   const whenReportsSuccessfullyFetched = () => tableState === 'success';
@@ -43,12 +44,17 @@ export const Reports = () => {
   };
 
   const handleViewDetails = (idx: number) => {
+    setModalDisplay('loading');
+
     getReport(reports[idx].reportId)
       .then((res) => {
         setViewReport(res.data);
+        setModalDisplay('report');
       })
       .catch((err) => {
         setViewReport({} as GetReportResponse);
+        setModalDisplay('error');
+
         console.error('GetReportError', { err });
       });
   };
@@ -64,8 +70,9 @@ export const Reports = () => {
       })
       .catch((err) => {
         setBtnSpinnerStates(btnSpinnerStates.map((btnState) => false));
-        console.error('DeleteReportError', { err });
         alert('An error has occurred while trying to process the delete request, please try again.');
+
+        console.error('DeleteReportError', { err });
       });
   };
 
@@ -81,6 +88,7 @@ export const Reports = () => {
         })
         .catch((err) => {
           setTableState('error');
+
           console.error('GetReportsError', { err });
         });
     }
@@ -103,7 +111,7 @@ export const Reports = () => {
               </thead>
               <tbody>
                 {reports.map((report, idx) => (
-                  <tr key={idx} className="table-row">
+                  <tr key={idx}>
                     <td>{getTimestampLabel(report.timestamp)}</td>
                     <td>{report.name}</td>
                     <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
@@ -148,7 +156,7 @@ export const Reports = () => {
             </table>
 
             <div id="modal-report" data-uk-modal>
-              <div className="uk-modal-dialog">
+              <div className="uk-modal-dialog modal-dims">
                 <button className="uk-modal-close-default" type="button" data-uk-close></button>
 
                 <div className="uk-modal-header">
@@ -156,7 +164,7 @@ export const Reports = () => {
                 </div>
 
                 <div className="uk-modal-body" data-uk-overflow-auto>
-                  <ReportDetails report={viewReport} />
+                  <ReportDetails report={viewReport} display={modalDisplay} />
                 </div>
 
                 <div className="uk-modal-footer uk-text-right">
