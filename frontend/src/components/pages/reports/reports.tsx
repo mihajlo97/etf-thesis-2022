@@ -6,17 +6,37 @@ import React from 'react';
 import { GetReportResponse, GetReportsResponse } from '../../../model/api-response.model';
 import { ReportOverview } from '../../../model/report.model';
 import { deleteReport, getReport, getReports } from '../../../service/api.service';
+import { Chevron, ChevronDirection } from '../../UI/chevron/chevron';
+import { SortHeader } from '../../UI/sort-header/sort-header';
 import { Spinner } from '../../UI/spinner/spinner';
 import { ReportDetails, ReportDetailsState } from '../../views/reports/report-details/report-details';
 
 export type ReportTableState = 'fetching' | 'success' | 'error';
 
+export type SortOrder = 'asc' | 'desc';
+
+export type ResultSort = 'class' | 'confidence';
+
+export type ResultOrigin = 'client' | 'server';
+
 export const Reports = () => {
   const [tableState, setTableState] = React.useState('fetching' as ReportTableState);
   const [reports, setReports] = React.useState([] as ReportOverview[]);
+  const [searchValue, setSearchValue] = React.useState('');
   const [viewReport, setViewReport] = React.useState({} as GetReportResponse);
   const [modalDisplay, setModalDisplay] = React.useState('loading' as ReportDetailsState);
   const [btnSpinnerStates, setBtnSpinnerStates] = React.useState([] as boolean[]);
+  const [hideReports, setHideReports] = React.useState([] as boolean[]);
+  const [sortResultsBy, setSortResultsBy] = React.useState('class' as ResultSort);
+  const [sortChevronStates, setSortChevronStates] = React.useState([
+    'down',
+    'down',
+    'down',
+    'down',
+  ] as ChevronDirection[]);
+
+  const tableHeadersSortable = ['Timestamp', 'Report', 'Client results', 'Server results'];
+  const resultSortOptions = ['Class names', 'Result confidence'];
 
   const whenReportsSuccessfullyFetched = () => tableState === 'success';
 
@@ -26,9 +46,73 @@ export const Reports = () => {
 
   const shouldShowNoReportsMsg = () => whenReportsSuccessfullyFetched() && reports.length === 0;
 
+  const shouldShowReportRow = (idx: number) => !hideReports[idx];
+
+  const flipChevronState = (state: ChevronDirection) => (state === 'down' ? 'up' : 'down');
+
   const getTimestampLabel = (timestamp: string) => `${new Date(parseInt(timestamp)).toLocaleString()}`;
 
   const getResultLabel = (className: string, confidence: number) => `${className} (${confidence.toFixed(2)}%)`;
+
+  const sortByTimestamp = (order: SortOrder) => {
+    setReports(
+      [...reports].sort((a, b) =>
+        order === 'desc' ? parseInt(a.timestamp) - parseInt(b.timestamp) : parseInt(b.timestamp) - parseInt(a.timestamp)
+      )
+    );
+  };
+
+  const sortByName = (order: SortOrder) => {
+    setReports(
+      [...reports].sort((a, b) => (order === 'desc' ? a.name.localeCompare(b.name) : -a.name.localeCompare(b.name)))
+    );
+  };
+
+  const sortByResults = (order: SortOrder, sortBy: ResultSort, origin: ResultOrigin) => {
+    if (origin === 'client') {
+      setReports(
+        [...reports].sort((a, b) => {
+          if (sortBy === 'class') {
+            return order === 'desc'
+              ? a.clientClass.localeCompare(b.clientClass)
+              : -a.clientClass.localeCompare(b.clientClass);
+          }
+
+          return order === 'desc' ? a.clientConfidence - b.clientConfidence : b.clientConfidence - a.clientConfidence;
+        })
+      );
+      return;
+    }
+
+    setReports(
+      [...reports].sort((a, b) => {
+        if (sortBy === 'class') {
+          return order === 'desc'
+            ? a.serverClass.localeCompare(b.serverClass)
+            : -a.serverClass.localeCompare(b.serverClass);
+        }
+
+        return order === 'desc' ? a.serverConfidence - b.serverConfidence : b.serverConfidence - a.serverConfidence;
+      })
+    );
+  };
+
+  const applySearchFilter = (reports: ReportOverview[], value: string): boolean[] => {
+    if (!value || value === '') {
+      return reports.map((report) => false);
+    }
+
+    return reports.map((report) => {
+      const val = value.toLocaleLowerCase();
+      const { name, clientClass, serverClass } = report;
+
+      return (
+        name.toLocaleLowerCase().search(val) < 0 &&
+        clientClass.toLocaleLowerCase().search(val) < 0 &&
+        serverClass.toLocaleLowerCase().search(val) < 0
+      );
+    });
+  };
 
   const removeReport = (reportIdx: number) => {
     const updatedReports = [] as ReportOverview[];
@@ -41,6 +125,7 @@ export const Reports = () => {
 
     setReports([...updatedReports]);
     setBtnSpinnerStates(updatedReports.map((report) => false));
+    setHideReports(applySearchFilter(updatedReports, searchValue));
   };
 
   const handleViewDetails = (idx: number) => {
@@ -76,6 +161,47 @@ export const Reports = () => {
       });
   };
 
+  const handleSort = (id: number) => {
+    if (id < 0) {
+      return;
+    }
+
+    const order = (sortChevronStates[id] === 'down' ? 'desc' : 'asc') as SortOrder;
+
+    setSortChevronStates(sortChevronStates.map((state, idx) => (id === idx ? flipChevronState(state) : state)));
+
+    switch (id) {
+      case 0:
+        sortByTimestamp(order);
+        break;
+
+      case 1:
+        sortByName(order);
+        break;
+
+      case 2:
+        sortByResults(order, sortResultsBy, 'client');
+        break;
+
+      case 3:
+        sortByResults(order, sortResultsBy, 'server');
+        break;
+
+      default:
+    }
+  };
+
+  const handleSelect = (event: any) => {
+    setSortResultsBy(event.target.value === resultSortOptions[0] ? 'class' : 'confidence');
+  };
+
+  const handleSearch = (event: any) => {
+    const val = event.target.value;
+
+    setSearchValue(val);
+    setHideReports(applySearchFilter(reports, val));
+  };
+
   React.useEffect(() => {
     if (shouldFetchReports()) {
       getReports()
@@ -85,6 +211,7 @@ export const Reports = () => {
           setReports([...data.reports]);
           setTableState('success');
           setBtnSpinnerStates(data.reports.map((report) => false));
+          setHideReports(data.reports.map((report) => false));
         })
         .catch((err) => {
           setTableState('error');
@@ -98,53 +225,85 @@ export const Reports = () => {
     case 'success':
       return (
         <>
+          <div className="uk-padding-small uk-flex uk-flex-between@s">
+            <div>
+              <label htmlFor="sort-select">{'Toggle result sorting by: '}</label>
+              <br />
+              <select
+                id="sort-select"
+                className="uk-select uk-margin-small-top uk-form-width-medium uk-form-small"
+                onChange={handleSelect}
+              >
+                {resultSortOptions.map((option, idx) => (
+                  <option key={idx}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="uk-margin-left">
+              <label htmlFor="search">{'Search in table: '}</label>
+              <br />
+              <input type="text" className="uk-input uk-margin-small-top uk-form-small" onChange={handleSearch} />
+            </div>
+          </div>
+
+          <hr className="no-margins" />
+
           <div className="uk-overflow-auto">
             <table className="uk-table uk-table-divider uk-table-middle uk-table-responsive">
               <thead>
                 <tr>
-                  <th>{'Timestamp'}</th>
-                  <th>{'Report'}</th>
-                  <th>{'Client results'}</th>
-                  <th>{'Server results'}</th>
+                  {tableHeadersSortable.map((header, idx) => (
+                    <th key={idx}>
+                      <SortHeader
+                        text={header}
+                        direction={sortChevronStates[idx]}
+                        onSortArgs={idx}
+                        onSortClick={handleSort}
+                      />
+                    </th>
+                  ))}
                   <th>{'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report, idx) => (
-                  <tr key={idx}>
-                    <td>{getTimestampLabel(report.timestamp)}</td>
-                    <td>{report.name}</td>
-                    <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
-                    <td>{getResultLabel(report.serverClass, report.serverConfidence)}</td>
-                    <td>
-                      <button
-                        className="uk-button uk-button-primary uk-width-1-1 uk-button-small"
-                        type="button"
-                        data-uk-toggle="target: #modal-report"
-                        onClick={() => handleViewDetails(idx)}
-                      >
-                        {'View details'}
-                      </button>
+                {reports.map((report, idx) =>
+                  shouldShowReportRow(idx) ? (
+                    <tr key={idx}>
+                      <td>{getTimestampLabel(report.timestamp)}</td>
+                      <td>{report.name}</td>
+                      <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
+                      <td>{getResultLabel(report.serverClass, report.serverConfidence)}</td>
+                      <td>
+                        <button
+                          className="uk-button uk-button-primary uk-width-1-1 uk-button-small"
+                          type="button"
+                          data-uk-toggle="target: #modal-report"
+                          onClick={() => handleViewDetails(idx)}
+                        >
+                          {'View details'}
+                        </button>
 
-                      <div
-                        className={`uk-flex uk-flex-center uk-margin-small-top ${
-                          shouldShowBtnSpinner(idx) ? '' : 'hide'
-                        }`}
-                      >
-                        <Spinner />
-                      </div>
-                      <button
-                        className={`uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top ${
-                          shouldShowBtnSpinner(idx) ? 'hide' : ''
-                        }`}
-                        type="button"
-                        onClick={() => handleDelete(idx)}
-                      >
-                        {'Delete'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <div
+                          className={`uk-flex uk-flex-center uk-margin-small-top ${
+                            shouldShowBtnSpinner(idx) ? '' : 'hide'
+                          }`}
+                        >
+                          <Spinner />
+                        </div>
+                        <button
+                          className={`uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top ${
+                            shouldShowBtnSpinner(idx) ? 'hide' : ''
+                          }`}
+                          type="button"
+                          onClick={() => handleDelete(idx)}
+                        >
+                          {'Delete'}
+                        </button>
+                      </td>
+                    </tr>
+                  ) : null
+                )}
                 {shouldShowNoReportsMsg() && (
                   <tr>
                     <td colSpan={5}>
