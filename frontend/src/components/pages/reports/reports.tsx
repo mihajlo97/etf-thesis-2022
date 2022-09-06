@@ -6,7 +6,7 @@ import React from 'react';
 import { GetReportResponse, GetReportsResponse } from '../../../model/api-response.model';
 import { ReportOverview } from '../../../model/report.model';
 import { deleteReport, getReport, getReports } from '../../../service/api.service';
-import { Chevron, ChevronDirection } from '../../UI/chevron/chevron';
+import { ChevronDirection } from '../../UI/chevron/chevron';
 import { SortHeader } from '../../UI/sort-header/sort-header';
 import { Spinner } from '../../UI/spinner/spinner';
 import { ReportDetails, ReportDetailsState } from '../../views/reports/report-details/report-details';
@@ -19,14 +19,22 @@ export type ResultSort = 'class' | 'confidence';
 
 export type ResultOrigin = 'client' | 'server';
 
+export type SortByCategory = 'timestamp' | 'name' | 'clientResults' | 'serverResults';
+
+export interface SortOptions {
+  order: SortOrder;
+  sortBy: SortByCategory;
+}
+
 export const Reports = () => {
   const [tableState, setTableState] = React.useState('fetching' as ReportTableState);
-  const [reports, setReports] = React.useState([] as ReportOverview[]);
+  const [allReports, setAllReports] = React.useState([] as ReportOverview[]);
+  const [reportsToRender, setReportsToRender] = React.useState([] as ReportOverview[]);
   const [searchValue, setSearchValue] = React.useState('');
   const [viewReport, setViewReport] = React.useState({} as GetReportResponse);
   const [modalDisplay, setModalDisplay] = React.useState('loading' as ReportDetailsState);
   const [btnSpinnerStates, setBtnSpinnerStates] = React.useState([] as boolean[]);
-  const [hideReports, setHideReports] = React.useState([] as boolean[]);
+  const [latestSortOptions, setLatestSortOptions] = React.useState({} as SortOptions);
   const [sortResultsBy, setSortResultsBy] = React.useState('class' as ResultSort);
   const [sortChevronStates, setSortChevronStates] = React.useState([
     'down',
@@ -40,98 +48,178 @@ export const Reports = () => {
 
   const whenReportsSuccessfullyFetched = () => tableState === 'success';
 
+  const whenNoReports = () => allReports.length === 0;
+
   const shouldFetchReports = () => tableState === 'fetching';
 
   const shouldShowBtnSpinner = (idx: number) => btnSpinnerStates[idx];
 
-  const shouldShowNoReportsMsg = () => whenReportsSuccessfullyFetched() && reports.length === 0;
+  const shouldShowNoReportsMsg = () => whenReportsSuccessfullyFetched() && whenNoReports();
 
-  const shouldShowReportRow = (idx: number) => !hideReports[idx];
+  const getSortOrder = (sortChevronStateIdx: number) =>
+    (sortChevronStates[sortChevronStateIdx] === 'down' ? 'desc' : 'asc') as SortOrder;
 
-  const flipChevronState = (state: ChevronDirection) => (state === 'down' ? 'up' : 'down');
+  const getSelectedReportId = (id: number) => reportsToRender[id].reportId;
 
   const getTimestampLabel = (timestamp: string) => `${new Date(parseInt(timestamp)).toLocaleString()}`;
 
   const getResultLabel = (className: string, confidence: number) => `${className} (${confidence.toFixed(2)}%)`;
 
-  const sortByTimestamp = (order: SortOrder) => {
-    setReports(
-      [...reports].sort((a, b) =>
-        order === 'desc' ? parseInt(a.timestamp) - parseInt(b.timestamp) : parseInt(b.timestamp) - parseInt(a.timestamp)
-      )
-    );
-  };
-
-  const sortByName = (order: SortOrder) => {
-    setReports(
-      [...reports].sort((a, b) => (order === 'desc' ? a.name.localeCompare(b.name) : -a.name.localeCompare(b.name)))
-    );
-  };
-
-  const sortByResults = (order: SortOrder, sortBy: ResultSort, origin: ResultOrigin) => {
-    if (origin === 'client') {
-      setReports(
-        [...reports].sort((a, b) => {
-          if (sortBy === 'class') {
-            return order === 'desc'
-              ? a.clientClass.localeCompare(b.clientClass)
-              : -a.clientClass.localeCompare(b.clientClass);
-          }
-
-          return order === 'desc' ? a.clientConfidence - b.clientConfidence : b.clientConfidence - a.clientConfidence;
-        })
-      );
-      return;
+  const getSortCategory = (headerId: number): SortByCategory => {
+    switch (headerId) {
+      case 0:
+        return 'timestamp';
+      case 1:
+        return 'name';
+      case 2:
+        return 'clientResults';
+      case 3:
+        return 'serverResults';
+      default:
+        return 'timestamp';
     }
+  };
 
-    setReports(
-      [...reports].sort((a, b) => {
+  const toggleSortChevronState = (state: ChevronDirection) => (state === 'down' ? 'up' : 'down');
+
+  const updateSortChevronStates = (sortChevronStateIdx: number) =>
+    setSortChevronStates(
+      sortChevronStates.map((state, idx) => (sortChevronStateIdx === idx ? toggleSortChevronState(state) : state))
+    );
+
+  const resetBtnSpinnerStates = (source: ReportOverview[]) => setBtnSpinnerStates(source.map((report) => false));
+
+  const updateBtnSpinnerState = (btnStateIdx: number, value: boolean) =>
+    setBtnSpinnerStates(btnSpinnerStates.map((state, idx) => (btnStateIdx === idx ? value : state)));
+
+  const updateAllReports = (source: ReportOverview[]) => setAllReports([...source]);
+
+  const updateReportsToRender = (source: ReportOverview[]) => setReportsToRender([...source]);
+
+  const sortSourceByTimestamp = (source: ReportOverview[], order: SortOrder) =>
+    [...source].sort((a, b) =>
+      order === 'desc' ? parseInt(a.timestamp) - parseInt(b.timestamp) : parseInt(b.timestamp) - parseInt(a.timestamp)
+    );
+
+  const sortSourceByName = (source: ReportOverview[], order: SortOrder) =>
+    [...source].sort((a, b) => (order === 'desc' ? a.name.localeCompare(b.name) : -a.name.localeCompare(b.name)));
+
+  const sortSourceByResults = (
+    source: ReportOverview[],
+    order: SortOrder,
+    sortBy: ResultSort,
+    origin: ResultOrigin
+  ) => {
+    if (origin === 'client') {
+      return [...source].sort((a, b) => {
         if (sortBy === 'class') {
           return order === 'desc'
-            ? a.serverClass.localeCompare(b.serverClass)
-            : -a.serverClass.localeCompare(b.serverClass);
+            ? a.clientClass.localeCompare(b.clientClass)
+            : -a.clientClass.localeCompare(b.clientClass);
         }
 
-        return order === 'desc' ? a.serverConfidence - b.serverConfidence : b.serverConfidence - a.serverConfidence;
-      })
-    );
-  };
-
-  const applySearchFilter = (reports: ReportOverview[], value: string): boolean[] => {
-    if (!value || value === '') {
-      return reports.map((report) => false);
+        return order === 'desc' ? a.clientConfidence - b.clientConfidence : b.clientConfidence - a.clientConfidence;
+      });
     }
 
-    return reports.map((report) => {
+    return [...source].sort((a, b) => {
+      if (sortBy === 'class') {
+        return order === 'desc'
+          ? a.serverClass.localeCompare(b.serverClass)
+          : -a.serverClass.localeCompare(b.serverClass);
+      }
+
+      return order === 'desc' ? a.serverConfidence - b.serverConfidence : b.serverConfidence - a.serverConfidence;
+    });
+  };
+
+  const filterSourceBySearchValue = (source: ReportOverview[], value: string) => {
+    if (!value || value === '') {
+      return [...allReports];
+    }
+
+    return source.filter((report) => {
       const val = value.toLocaleLowerCase();
       const { name, clientClass, serverClass } = report;
 
       return (
-        name.toLocaleLowerCase().search(val) < 0 &&
-        clientClass.toLocaleLowerCase().search(val) < 0 &&
-        serverClass.toLocaleLowerCase().search(val) < 0
+        name.toLocaleLowerCase().search(val) >= 0 ||
+        clientClass.toLocaleLowerCase().search(val) >= 0 ||
+        serverClass.toLocaleLowerCase().search(val) >= 0
       );
     });
   };
 
-  const removeReport = (reportIdx: number) => {
+  const filterAndSortSource = (source: ReportOverview[], searchVal: string, sortOpt: SortOptions) => {
+    const filtered = filterSourceBySearchValue(source, searchVal);
+
+    const { sortBy, order } = sortOpt;
+
+    switch (sortBy) {
+      case 'timestamp':
+        return sortSourceByTimestamp(filtered, order);
+
+      case 'name':
+        return sortSourceByName(filtered, order);
+
+      case 'clientResults':
+        return sortSourceByResults(filtered, order, sortResultsBy, 'client');
+
+      case 'serverResults':
+        return sortSourceByResults(filtered, order, sortResultsBy, 'server');
+
+      default:
+        return filtered;
+    }
+  };
+
+  const removeReportFromSource = (source: ReportOverview[], reportId: string) => {
     const updatedReports = [] as ReportOverview[];
 
-    reports.forEach((report, idx) => {
-      if (idx !== reportIdx) {
+    source.forEach((report, idx) => {
+      if (report.reportId !== reportId) {
         updatedReports.push(report);
       }
     });
 
-    setReports([...updatedReports]);
-    setBtnSpinnerStates(updatedReports.map((report) => false));
-    setHideReports(applySearchFilter(updatedReports, searchValue));
+    return updatedReports;
+  };
+
+  const handleSearch = (event: any) => {
+    const value = event.target.value;
+    const updatedReportsToRender = filterAndSortSource(reportsToRender, value, latestSortOptions);
+
+    updateReportsToRender(updatedReportsToRender);
+    setSearchValue(value);
+  };
+
+  const handleSelect = (event: any) =>
+    setSortResultsBy(event.target.value === resultSortOptions[0] ? 'class' : 'confidence');
+
+  const handleSort = (sortCategoryIdx: number) => {
+    if (sortCategoryIdx < 0) {
+      return;
+    }
+
+    const order = getSortOrder(sortCategoryIdx);
+    const sortBy = getSortCategory(sortCategoryIdx);
+    const sortOptions = { order, sortBy } as SortOptions;
+
+    const updatedReportsToRender = filterAndSortSource(reportsToRender, searchValue, sortOptions);
+
+    updateSortChevronStates(sortCategoryIdx);
+    updateReportsToRender(updatedReportsToRender);
+    setLatestSortOptions(sortOptions);
   };
 
   const handleViewDetails = (idx: number) => {
-    setModalDisplay('loading');
+    if (idx < 0) {
+      return;
+    }
 
-    getReport(reports[idx].reportId)
+    const reportId = getSelectedReportId(idx);
+
+    getReport(reportId)
       .then((res) => {
         setViewReport(res.data);
         setModalDisplay('report');
@@ -142,64 +230,34 @@ export const Reports = () => {
 
         console.error('GetReportError', { err });
       });
+
+    setModalDisplay('loading');
   };
 
   const handleDelete = (reportIdx: number) => {
-    setBtnSpinnerStates(btnSpinnerStates.map((btnState, idx) => reportIdx === idx));
+    if (reportIdx < 0) {
+      return;
+    }
 
-    const reportId = reports[reportIdx].reportId;
+    const reportId = getSelectedReportId(reportIdx);
 
     deleteReport({ reportId })
       .then((res) => {
-        removeReport(reportIdx);
+        const updatedReportsToRender = removeReportFromSource(reportsToRender, reportId);
+        const updatedReports = removeReportFromSource(allReports, reportId);
+
+        resetBtnSpinnerStates(updatedReportsToRender);
+        updateReportsToRender(updatedReportsToRender);
+        updateAllReports(updatedReports);
       })
       .catch((err) => {
-        setBtnSpinnerStates(btnSpinnerStates.map((btnState) => false));
+        resetBtnSpinnerStates(reportsToRender);
         alert('An error has occurred while trying to process the delete request, please try again.');
 
         console.error('DeleteReportError', { err });
       });
-  };
 
-  const handleSort = (id: number) => {
-    if (id < 0) {
-      return;
-    }
-
-    const order = (sortChevronStates[id] === 'down' ? 'desc' : 'asc') as SortOrder;
-
-    setSortChevronStates(sortChevronStates.map((state, idx) => (id === idx ? flipChevronState(state) : state)));
-
-    switch (id) {
-      case 0:
-        sortByTimestamp(order);
-        break;
-
-      case 1:
-        sortByName(order);
-        break;
-
-      case 2:
-        sortByResults(order, sortResultsBy, 'client');
-        break;
-
-      case 3:
-        sortByResults(order, sortResultsBy, 'server');
-        break;
-
-      default:
-    }
-  };
-
-  const handleSelect = (event: any) => {
-    setSortResultsBy(event.target.value === resultSortOptions[0] ? 'class' : 'confidence');
-  };
-
-  const handleSearch = (event: any) => {
-    const val = event.target.value;
-
-    setSearchValue(val);
-    setHideReports(applySearchFilter(reports, val));
+    updateBtnSpinnerState(reportIdx, true);
   };
 
   React.useEffect(() => {
@@ -207,11 +265,12 @@ export const Reports = () => {
       getReports()
         .then((res) => {
           const data = res.data as GetReportsResponse;
+          const userReports = data.reports;
 
-          setReports([...data.reports]);
+          updateReportsToRender(userReports);
+          updateAllReports(userReports);
+          resetBtnSpinnerStates(userReports);
           setTableState('success');
-          setBtnSpinnerStates(data.reports.map((report) => false));
-          setHideReports(data.reports.map((report) => false));
         })
         .catch((err) => {
           setTableState('error');
@@ -263,47 +322,50 @@ export const Reports = () => {
                       />
                     </th>
                   ))}
+
                   <th>{'Actions'}</th>
                 </tr>
               </thead>
-              <tbody>
-                {reports.map((report, idx) =>
-                  shouldShowReportRow(idx) ? (
-                    <tr key={idx}>
-                      <td>{getTimestampLabel(report.timestamp)}</td>
-                      <td>{report.name}</td>
-                      <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
-                      <td>{getResultLabel(report.serverClass, report.serverConfidence)}</td>
-                      <td>
-                        <button
-                          className="uk-button uk-button-primary uk-width-1-1 uk-button-small"
-                          type="button"
-                          data-uk-toggle="target: #modal-report"
-                          onClick={() => handleViewDetails(idx)}
-                        >
-                          {'View details'}
-                        </button>
 
-                        <div
-                          className={`uk-flex uk-flex-center uk-margin-small-top ${
-                            shouldShowBtnSpinner(idx) ? '' : 'hide'
-                          }`}
-                        >
-                          <Spinner />
-                        </div>
-                        <button
-                          className={`uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top ${
-                            shouldShowBtnSpinner(idx) ? 'hide' : ''
-                          }`}
-                          type="button"
-                          onClick={() => handleDelete(idx)}
-                        >
-                          {'Delete'}
-                        </button>
-                      </td>
-                    </tr>
-                  ) : null
-                )}
+              <tbody>
+                {reportsToRender.map((report, idx) => (
+                  <tr key={idx}>
+                    <td>{getTimestampLabel(report.timestamp)}</td>
+                    <td>{report.name}</td>
+                    <td>{getResultLabel(report.clientClass, report.clientConfidence)}</td>
+                    <td>{getResultLabel(report.serverClass, report.serverConfidence)}</td>
+
+                    <td>
+                      <button
+                        className="uk-button uk-button-primary uk-width-1-1 uk-button-small"
+                        type="button"
+                        data-uk-toggle="target: #modal-report"
+                        onClick={() => handleViewDetails(idx)}
+                      >
+                        {'View details'}
+                      </button>
+
+                      <div
+                        className={`uk-flex uk-flex-center uk-margin-small-top ${
+                          shouldShowBtnSpinner(idx) ? '' : 'hide'
+                        }`}
+                      >
+                        <Spinner />
+                      </div>
+
+                      <button
+                        className={`uk-button uk-button-danger uk-width-1-1 uk-button-small uk-margin-small-top ${
+                          shouldShowBtnSpinner(idx) ? 'hide' : ''
+                        }`}
+                        type="button"
+                        onClick={() => handleDelete(idx)}
+                      >
+                        {'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
                 {shouldShowNoReportsMsg() && (
                   <tr>
                     <td colSpan={5}>
