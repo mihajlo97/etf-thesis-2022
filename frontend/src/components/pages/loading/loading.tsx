@@ -13,7 +13,6 @@ export const Loading = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

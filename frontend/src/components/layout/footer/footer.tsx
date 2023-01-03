@@ -3,7 +3,7 @@ import React from 'react';
 
 export const Footer = () => {
   return (
-    <>
+    <footer>
       <div className="uk-container-expand footer">
         <div className="uk-flex uk-flex-center@m uk-padding uk-margin-xlarge-top">
           <div className="uk-margin-large-right">
@@ -22,7 +22,7 @@ export const Footer = () => {
               <br />
               <a href="https://www.etf.bg.ac.rs/">{'etf.bg.ac.rs'}</a>
             </p>
-            <p>{'Summer 2022'}</p>
+            {/* <p>{'Summer 2022'}</p> */}
           </div>
           <div>
             <p>
@@ -45,6 +45,6 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </>
+    </footer>
   );
 };

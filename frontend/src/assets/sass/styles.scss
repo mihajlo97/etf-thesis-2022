@@ -1,9 +1,9 @@
 // Variables
 $bgColorPrimary: #1e87f0;
-$bgColorSecondary: #FAFAFA;
+$bgColorSecondary: #e7e7e7;
 $headerLinkColor: white;
-$headerActiveLinkColor: #58bfff;
-$headerHoverLinkColor: #98d6fd;
+$headerActiveLinkColor: #98d6fd;
+$headerHoverLinkColor:#000000;
 
 // Theme
 .bg-color-primary {
@@ -36,6 +36,7 @@ $headerHoverLinkColor: #98d6fd;
 
 .footer {
     background-color: $bgColorSecondary;
+    width: 100%; 
 }
 
 .chevron-sort {

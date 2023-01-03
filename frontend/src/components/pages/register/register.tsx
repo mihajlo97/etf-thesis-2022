@@ -309,8 +309,6 @@ export const Register = () => {
           ) : null}
         </div>
       </div>
-
-      <Footer />
     </>
   );
 };

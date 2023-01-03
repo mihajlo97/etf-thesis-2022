@@ -13,8 +13,7 @@ export const Main = ({ component }: MainProps) => {
   return (
     <>
       <Header />
-      {component}
-      <Footer />
+      <div className="uk-margin-large-bottom content">{component}</div>
     </>
   );
 };

@@ -4,7 +4,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppRoutes } from '../../../consts/routes.consts';
 import { assertSessionExpiredLogout } from '../../../service/auth.service';
-import { Footer } from '../../layout/footer/footer';
 
 export const Logout = () => {
   const [expired, setExpired] = React.useState(assertSessionExpiredLogout());
@@ -23,7 +22,6 @@ export const Logout = () => {
       <div className="uk-flex uk-flex-row uk-flex-center uk-margin-large-top">
         <div className="uk-card uk-width-1-2@m">
           <div className={decideAlertStyle()} data-uk-alert>
-            <a className="uk-alert-close" data-uk-close></a>
             <p style={{ textAlign: 'center' }}>
               {decideAlertText()}
               <br />
@@ -34,7 +32,6 @@ export const Logout = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

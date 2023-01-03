@@ -166,8 +166,6 @@ export const Login = () => {
           ) : null}
         </div>
       </div>
-
-      <Footer />
     </>
   );
 };
