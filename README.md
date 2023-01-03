@@ -1,1 +1,1 @@
-# etf-thesis-2022
+Implementation of the demonstration app for showcasing the difference in performance and success rates of image classification in frontend and backend implementations of the Tensorflow(.js) library. Used for academic purposes.
