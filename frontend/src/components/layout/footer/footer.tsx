@@ -22,7 +22,6 @@ export const Footer = () => {
               <br />
               <a href="https://www.etf.bg.ac.rs/">{'etf.bg.ac.rs'}</a>
             </p>
-            {/* <p>{'Summer 2022'}</p> */}
           </div>
           <div>
             <p>

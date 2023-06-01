@@ -187,7 +187,7 @@ export const Register = () => {
 
   return (
     <>
-      <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-xlarge-top">
+      <div className="uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-margin-xlarge-top uk-margin-xlarge-bottom">
         <div className="uk-card uk-card-default uk-card-body uk-width-1-2@m">
           <h3 className="uk-card-title">{'Register account'}</h3>
 

@@ -6,28 +6,11 @@ import { MODELS } from '../consts/tensorflow.consts';
 import { classifyImage } from './api.service';
 import { ModelName } from '../model/api-request.model';
 
-// export type ModelType = mobilenet.MobileNet | tf.LayersModel;
-
 export const getModels = () => MODELS;
 
 export const getModel = (modelId: number) => getModels()[modelId];
 
 export const loadModel = async (model: ModelName): Promise<mobilenet.MobileNet> => {
-  /*switch (model) {
-    case 'mobilenet':
-      return mobilenet.load({ version: 2, alpha: 1 });
-
-    case 'resnet':
-      return tf.loadLayersModel(
-        'https://raw.githubusercontent.com/mihajlo97/etf-thesis-2022/main/frontend/src/assets/models/resnet/model.json'
-      );
-
-    case 'vgg':
-      return tf.loadLayersModel(
-        'https://raw.githubusercontent.com/mihajlo97/etf-thesis-2022/main/frontend/src/assets/models/vgg/model.json'
-      );
-  }*/
-
   switch (model) {
     case 'mobilenet':
       return mobilenet.load({ version: 1, alpha: 1 });
@@ -39,18 +22,6 @@ export const loadModel = async (model: ModelName): Promise<mobilenet.MobileNet> 
       throw new Error(`LoadModelError: No such model ${model}.`);
   }
 };
-
-/*export const performClassification = async (model: ModelType, name: ModelName, image: ImageData) => {
-  const tensor = tf.browser.fromPixels(image);
-
-  console.log('Tensor', tensor);
-
-  if (name === 'mobilenet') {
-    return (model as mobilenet.MobileNet).classify(tensor);
-  }
-
-  return (model as tf.LayersModel).predict(tensor.reshape([1, 224, 224, 3]));
-};*/
 
 export const classifyImageLocally = async (model: ModelName): Promise<ImageClassificationResults> => {
   try {
