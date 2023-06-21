@@ -56,7 +56,7 @@ class Users(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
-    reports = db.relationship('Reports', backref='users', lazy=True, cascade="all, delete, delete-orphan" )
+    reports = db.relationship('Reports', backref='users', lazy=True, cascade="all, delete, delete-orphan")
 
     def __repr__(self):
         return f'<User {self.first_name} {self.last_name} ({self.email})>'
@@ -95,8 +95,8 @@ db.session.commit()
 # Helper functions:
 
 def prepare_image_data(img, model):
-    if img.mode != "RGB":
-        img = img.convert("RGB")
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
 
     img = img.resize((224, 224))
     img = image.img_to_array(img)
@@ -130,13 +130,13 @@ def get_image_bytes(image_path):
 
 # API:
 
-@app.route("/")
+@app.route('/')
 def index():
     # Basic server healthcheck.
-    return "Server up and running on port 5000."
+    return 'Server up and running on port 5000.'
 
 
-@app.route("/user/register", methods=["POST"])
+@app.route('/user/register', methods=['POST'])
 def register_user():
     # Register user in database.
     # Request: { firstName, lastName, email, password }

@@ -187,7 +187,7 @@ export const Reports = () => {
 
   const handleSearch = (event: any) => {
     const value = event.target.value;
-    const updatedReportsToRender = filterAndSortSource(reportsToRender, value, latestSortOptions);
+    const updatedReportsToRender = filterAndSortSource(allReports, value, latestSortOptions);
 
     updateReportsToRender(updatedReportsToRender);
     setSearchValue(value);
