@@ -37,7 +37,7 @@ export const Reports = () => {
   const [latestSortOptions, setLatestSortOptions] = React.useState({} as SortOptions);
   const [sortResultsBy, setSortResultsBy] = React.useState('class' as ResultSort);
   const [sortChevronStates, setSortChevronStates] = React.useState([
-    'down',
+    'up',
     'down',
     'down',
     'down',
@@ -360,7 +360,7 @@ export const Reports = () => {
                         type="button"
                         onClick={() => handleDelete(idx)}
                       >
-                        {'Delete'}
+                        {'Delete report'}
                       </button>
                     </td>
                   </tr>
